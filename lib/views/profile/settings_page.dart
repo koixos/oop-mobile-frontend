@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sptm/core/validators.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -6,37 +7,47 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Future<void> showPasswordDialog() async {
-      final currentController = TextEditingController();
       final newController = TextEditingController();
       final confirmController = TextEditingController();
+      final formKey = GlobalKey<FormState>();
 
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Change Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: currentController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Current password',
+          content: Form(
+            key: formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: newController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'New password',
+                    errorMaxLines: 3,
+                  ),
+                  validator: Validators.validatePasswd,
                 ),
-              ),
-              TextField(
-                controller: newController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'New password'),
-              ),
-              TextField(
-                controller: confirmController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm new password',
+                TextFormField(
+                  controller: confirmController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Confirm new password',
+                    errorMaxLines: 3,
+                  ),
+                  validator: (value) {
+                    //final baseError = Validators.validatePasswd(value);
+                    //if (baseError != null) return baseError;
+                    if (value != newController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -45,6 +56,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                if (!formKey.currentState!.validate()) return;
                 // TODO: Validate and call password update API.
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -58,19 +70,19 @@ class SettingsPage extends StatelessWidget {
       );
     }
 
-    Future<void> showEmailDialog() async {
+    Future<void> showNameDialog() async {
       final emailController = TextEditingController();
 
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Change E-mail'),
+          title: const Text('Change Name'),
           content: TextField(
             controller: emailController,
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.text,
             decoration: const InputDecoration(
-              labelText: 'New e-mail',
-              hintText: 'name@example.com',
+              labelText: 'New Name',
+              hintText: 'Your Name',
             ),
           ),
           actions: [
@@ -84,7 +96,7 @@ class SettingsPage extends StatelessWidget {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('E-mail updated')));
+                ).showSnackBar(const SnackBar(content: Text('Name updated')));
               },
               child: const Text('Save'),
             ),
@@ -133,10 +145,10 @@ class SettingsPage extends StatelessWidget {
 
     final actions = <_SettingAction>[
       _SettingAction('Change Password', Icons.lock_reset, showPasswordDialog),
-      _SettingAction('Change E-mail', Icons.alternate_email, showEmailDialog),
+      _SettingAction('Change Name', Icons.text_format, showNameDialog),
       _SettingAction(
         'Change Profile Picture',
-        Icons.photo_camera,
+        Icons.camera_alt_outlined,
         showProfilePictureSheet,
       ),
     ];

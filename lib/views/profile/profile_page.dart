@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sptm/views/profile/settings_page.dart';
 
-// TODO: My Tasks items should be clickable buttons that lead to task pages
-// Implement buttons
-// Implement task pages
+// TODO:
+// Implement Task pages and connect to My Tasks section buttons
+// (Optional) create a Container widget for styles boxes
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,6 +16,13 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final List<String> _contexts = ['@home', '@work', '@school'];
   static const List<String> _quickLists = ['Inbox', 'Today', 'Upcoming'];
+  final ScrollController _contextScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _contextScrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _showAddContextDialog() async {
     final controller = TextEditingController();
@@ -117,6 +124,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
                   itemCount: _quickLists.length,
                   separatorBuilder: (_, __) => const Divider(),
                   itemBuilder: (_, i) => ListTile(
@@ -157,44 +166,56 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ],
                 ),
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _contexts.length + 1,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (_, i) {
-                    final isAddRow = i == _contexts.length;
-                    if (isAddRow) {
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 12,
+                child: Scrollbar(
+                  controller: _contextScrollController,
+                  thumbVisibility: false,
+                  trackVisibility: true,
+                  scrollbarOrientation: ScrollbarOrientation.right,
+                  child: ListView.separated(
+                    controller: _contextScrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _contexts.length + 1,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (_, i) {
+                      final isAddRow = i == _contexts.length;
+                      if (isAddRow) {
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 2,
+                            horizontal: 10,
+                          ),
+                          leading: Icon(
+                            Icons.add_circle_outline,
+                            color: Theme.of(context).primaryColor,
+                            size: 20,
+                          ),
+                          title: Text(
+                            'Add an item',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          onTap: _showAddContextDialog,
+                        );
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
                         ),
-                        leading: const Icon(Icons.add_circle_outline),
-                        title: const Text(
-                          'Add an item',
-                          style: TextStyle(
+                        child: Text(
+                          _contexts[i],
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        onTap: _showAddContextDialog,
                       );
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                      child: Text(
-                        _contexts[i],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    );
-                  },
+                    },
+                  ),
                 ),
               ),
             ],
