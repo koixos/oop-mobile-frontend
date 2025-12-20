@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/views/dashboard/widgets/goal_card.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
-import 'package:sptm/views/notifications/notifications_page.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({ super.key });
+  const DashboardPage({super.key});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -38,9 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final img = prefs.getString("img");
 
     setState(() {
-      firstName = fullName.isNotEmpty
-          ? fullName.split(" ").first
-          : "";
+      firstName = fullName.isNotEmpty ? fullName.split(" ").first : "";
 
       profileImagePath = img;
       greeting = _getGreetingBasedOnTime();
@@ -111,30 +108,54 @@ class _DashboardPageState extends State<DashboardPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
-              Text('Priority Matrix', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                'Priority Matrix',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               SizedBox(height: 6),
-              Text('Urgent & important tasks', style: TextStyle(fontSize: 18, color: Color(0xFF37BF6C))),
+              Text(
+                'Urgent & important tasks',
+                style: TextStyle(fontSize: 18, color: Color(0xFF37BF6C)),
+              ),
             ],
           ),
           Row(
             children: [
               Column(
                 children: const [
-                  Text('3', style: TextStyle(fontSize: 20, color: Color(0xFF06D66E), fontWeight: FontWeight.bold)),
-                  Text('Do', style: TextStyle(color: Color(0xFF37BF6C)))
+                  Text(
+                    '3',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Color(0xFF06D66E),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text('Do', style: TextStyle(color: Color(0xFF37BF6C))),
                 ],
               ),
               const SizedBox(width: 12),
               Column(
                 children: const [
-                  Text('5', style: TextStyle(fontSize: 20, color: Color(0xFF06D66E), fontWeight: FontWeight.bold)),
-                  Text('Schedule', style: TextStyle(color: Color(0xFF37BF6C)))
+                  Text(
+                    '5',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Color(0xFF06D66E),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text('Schedule', style: TextStyle(color: Color(0xFF37BF6C))),
                 ],
               ),
               const SizedBox(width: 8),
               const Icon(Icons.chevron_right, color: Colors.white),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -143,11 +164,20 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildTabs() {
     return Row(
       children: const [
-        Text('Today', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+          'Today',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         SizedBox(width: 18),
-        Text('This Week', style: TextStyle(fontSize: 16, color: Color(0xFF37BF6C))),
+        Text(
+          'This Week',
+          style: TextStyle(fontSize: 16, color: Color(0xFF37BF6C)),
+        ),
         SizedBox(width: 18),
-        Text('Upcoming', style: TextStyle(fontSize: 16, color: Color(0xFF37BF6C))),
+        Text(
+          'Upcoming',
+          style: TextStyle(fontSize: 16, color: Color(0xFF37BF6C)),
+        ),
       ],
     );
   }
@@ -184,10 +214,10 @@ class _DashboardPageState extends State<DashboardPage> {
       itemBuilder: (context, index) {
         final t = tasks[index];
         return TaskCard(
-            title: t['title'] as String,
-            subtitle: t['subtitle'] as String,
-            color: (t['color'] as Color),
-            done: (t['Done'] as bool?) ?? false,
+          title: t['title'] as String,
+          subtitle: t['subtitle'] as String,
+          color: (t['color'] as Color),
+          done: (t['Done'] as bool?) ?? false,
         );
       },
     );
@@ -197,29 +227,32 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF07160F),
-      body: RefreshIndicator(
-        color: const Color(0xFF06D66E),
-        backgroundColor: const Color(0xFF04150C),
-        onRefresh: _loadUserInfo,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                _buildHeader(),
-                const SizedBox(height: 16),
-                _buildActiveGoals(),
-                const SizedBox(height: 16),
-                _buildPriorityMatrix(context),
-                const SizedBox(height: 18),
-                _buildTabs(),
-                const SizedBox(height: 12),
-                _buildTaskList(),
-                const SizedBox(height: 40),
-              ],
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: const Color(0xFF06D66E),
+          backgroundColor: const Color(0xFF04150C),
+          onRefresh: _loadUserInfo,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildHeader(),
+                  const SizedBox(height: 16),
+                  _buildActiveGoals(),
+                  const SizedBox(height: 16),
+                  _buildPriorityMatrix(context),
+                  const SizedBox(height: 18),
+                  _buildTabs(),
+                  const SizedBox(height: 12),
+                  _buildTaskList(),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
