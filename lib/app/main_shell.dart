@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sptm/views/archive/archive_page.dart';
+import 'package:sptm/views/calendar/calendar_page.dart';
 import 'package:sptm/views/dashboard/dashboard_page.dart';
-import 'package:sptm/views/notifications/notifications_page.dart';
-import 'package:sptm/views/profile/profile_page.dart';
-import 'package:sptm/views/tasks/create_tasks_page.dart';
-import 'package:sptm/views/tasks/tasks_page.dart';
+import 'package:sptm/views/insights/insights_page.dart';
+import 'package:sptm/views/missions/missions_page.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -15,16 +15,28 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int index = 0;
 
-  Widget navItem(BuildContext context, IconData icon, VoidCallback onTap) {
+  final pages = const [
+    DashboardPage(),
+    MissionsPage(),
+    CalendarPage(),
+    InsightsPage(),
+    ArchivePage(),
+  ];
+
+  Widget _navItem({required IconData icon, required int itemIndex}) {
+    final isActive = index == itemIndex;
+
     return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white54),
-          const SizedBox(height: 2),
-        ],
-      )
+      onTap: () => setState(() => index = itemIndex),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0x3306D66E) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: isActive ? Colors.white : Colors.white54),
+      ),
     );
   }
 
@@ -32,21 +44,19 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF04150C),
-      body: DashboardPage(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF06D66E),
-        elevation: 8,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CreateTaskPage(),
-            ),
-          );
-        },
-        child: const Icon(Icons.add, size: 32, color: Colors.black),
-      ),
+      body: IndexedStack(index: index, children: pages),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: const Color(0xFF06D66E),
+      //   elevation: 8,
+      //   onPressed: () {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (_) => const CreateTaskPage()),
+      //     );
+      //   },
+      //   child: const Icon(Icons.add, size: 32, color: Colors.black),
+      // ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: BottomAppBar(
@@ -55,56 +65,20 @@ class _MainShellState extends State<MainShell> {
           notchMargin: 6,
           elevation: 10,
           child: SizedBox(
-              height: 52,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  navItem(
-                    context,
-                    Icons.home,
-                    () async {
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const MainShell())
-                      );
-                    }
-                  ),
-                  navItem(
-                    context,
-                    Icons.list,
-                    () async {
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const TasksPage())
-                      );
-                    }
-                  ),
-                  const SizedBox(width: 40),
-                  navItem(
-                    context,
-                    Icons.notifications,
-                        () async {
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const NotificationsPage())
-                      );
-                    }
-                  ),
-                  navItem(
-                    context,
-                    Icons.person,
-                    () async {
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ProfilePage())
-                      );
-                    }
-                  ),
-                ],
-              )
+            height: 52,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(icon: Icons.home, itemIndex: 0), // dashboard
+                _navItem(icon: Icons.flag, itemIndex: 1), // missions
+                _navItem(icon: Icons.calendar_month, itemIndex: 2), // calendar
+                _navItem(icon: Icons.insights, itemIndex: 3), // insights
+                _navItem(icon: Icons.archive, itemIndex: 4), // archive
+              ],
+            ),
           ),
         ),
-      )
+      ),
     );
   }
 }

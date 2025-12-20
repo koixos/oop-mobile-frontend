@@ -3,7 +3,7 @@ import '../profile/profile_page.dart';
 import '../widgets/custom_button.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({ super.key });
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,11 +11,19 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(title: const Text("Dashboard")),
       body: Center(
         child: CustomButton(
-          text: "Profile", 
+          text: "Profile",
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
-          }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfilePage()),
+            );
+          },
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
+        ],
       ),
     );
   }
