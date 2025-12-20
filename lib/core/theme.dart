@@ -8,12 +8,12 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: const Color(AppColors.clr2),
     inputDecorationTheme: InputDecorationTheme(
-      filled: true,
+      //filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
-    )
+    ),
   );
 }
