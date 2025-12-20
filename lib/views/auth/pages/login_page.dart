@@ -8,7 +8,7 @@ import 'package:sptm/views/auth/dialogs/forgot_passwd_dialog.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({ super.key });
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -24,8 +24,8 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showForgotPasswdDialog() {
     showDialog(
-        context: context,
-        builder: (_) => ForgotPasswdDialog(authService: authService)
+      context: context,
+      builder: (_) => ForgotPasswdDialog(authService: authService),
     );
   }
 
@@ -36,8 +36,8 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final success = await authService.login(
-          emailOrPhoneCtrl.text.trim(),
-          passwdCtrl.text
+        emailOrPhoneCtrl.text.trim(),
+        passwdCtrl.text,
       );
 
       if (success) {
@@ -147,10 +147,10 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                ),
+                // IconButton(
+                //   onPressed: () => Navigator.pop(context),
+                //   icon: const Icon(Icons.arrow_back, color: Colors.white),
+                // ),
                 const SizedBox(height: 20),
                 Container(
                   width: 80,
@@ -236,21 +236,21 @@ class _LoginPageState extends State<LoginPage> {
                     child: Center(
                       child: loading
                           ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.black,
-                        ),
-                      )
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
                           : const Text(
-                        "Log In",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                              "Log In",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ),
