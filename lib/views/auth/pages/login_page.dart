@@ -116,14 +116,23 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildSocialButton(String text) {
+  Widget _buildSocialButton(String text, IconData? icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xFF0C1F15),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Text(text, style: const TextStyle(color: Colors.white)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: Colors.white70),
+            const SizedBox(width: 8),
+          ],
+          Text(text, style: const TextStyle(color: Colors.white, fontSize: 15)),
+        ],
+      ),
     );
   }
 
@@ -152,31 +161,38 @@ class _LoginPageState extends State<LoginPage> {
                 //   icon: const Icon(Icons.arrow_back, color: Colors.white),
                 // ),
                 const SizedBox(height: 20),
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0B3B26),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    size: 50,
-                    color: Color(0xFF06D66E),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                const Text(
-                  "Focus on what matters",
-                  style: TextStyle(
-                    fontSize: 32,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0B3B26),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.check_circle,
+                        size: 50,
+                        color: Color(0xFF06D66E),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text(
+                        maxLines: 2,
+                        "Focus on what matters",
+                        style: TextStyle(
+                          fontSize: 30,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  "Align your day with your mission. Log in to access your personal task manager.",
+                  "Align your day with your mission.\nLog in to access your personal task manager.",
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white70,
@@ -255,6 +271,18 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterPage()),
+                    ),
+                    child: const Text(
+                      "I don't have an account.",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                ),
                 Row(
                   children: const [
                     Expanded(child: Divider(color: Colors.white24)),
@@ -271,22 +299,9 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildSocialButton("Google"),
-                    _buildSocialButton("Apple"),
+                    _buildSocialButton("Google", Icons.g_mobiledata),
+                    _buildSocialButton("Apple", Icons.apple),
                   ],
-                ),
-                const SizedBox(height: 30),
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const RegisterPage()),
-                    ),
-                    child: const Text(
-                      "I don't have an account.",
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
                 ),
               ],
             ),
