@@ -8,7 +8,7 @@ void main() {
 }
 
 class SmartTaskManagerApp extends StatelessWidget {
-  const SmartTaskManagerApp({ super.key });
+  const SmartTaskManagerApp({super.key});
 
   @override
   Widget build(BuildContext context) {

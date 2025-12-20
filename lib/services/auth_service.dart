@@ -1,11 +1,17 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  Future<bool> register(String name, String phone, String email, String passwd) async {
+  Future<bool> register(
+    String name,
+    String phone,
+    String email,
+    String passwd,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final emailRegex = RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$");
 
-    if (name.isEmpty || phone.isEmpty || email.isEmpty || passwd.isEmpty) return false;
+    if (name.isEmpty || phone.isEmpty || email.isEmpty || passwd.isEmpty)
+      return false;
 
     if (!emailRegex.hasMatch(email)) return false;
 
@@ -13,6 +19,7 @@ class AuthService {
     prefs.setString('phone', phone);
     prefs.setString('email', email);
     prefs.setString('passwd', passwd);
+    prefs.setString('img', "");
 
     return true;
   }
@@ -25,11 +32,9 @@ class AuthService {
     final savedEmail = prefs.getString('email');
     final savedPhone = prefs.getString('phone');
     final savedPasswd = prefs.getString('passwd');
-    
-    return (
-      (emailOrPhone == savedEmail || emailOrPhone == savedPhone)
-      && passwd == savedPasswd
-    );
+
+    return ((emailOrPhone == savedEmail || emailOrPhone == savedPhone) &&
+        passwd == savedPasswd);
   }
 
   Future<void> logout() async {
@@ -38,6 +43,17 @@ class AuthService {
   }
 
   Future<bool> requestPasswdReset(String email) async {
+    await Future.delayed(const Duration(milliseconds: 700));
     return true;
+  }
+
+  Future<bool> resetPasswdWithCode(
+    String email,
+    String code,
+    String newPasswd,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (code == '123456') return true;
+    return false;
   }
 }
