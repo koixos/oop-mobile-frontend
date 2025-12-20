@@ -156,41 +156,31 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // IconButton(
-                //   onPressed: () => Navigator.pop(context),
-                //   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                // ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0B3B26),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.check_circle,
-                        size: 50,
-                        color: Color(0xFF06D66E),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        maxLines: 2,
-                        "Focus on what matters",
-                        style: TextStyle(
-                          fontSize: 30,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B3B26),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    size: 50,
+                    color: Color(0xFF06D66E),
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 28),
+                const Text(
+                  maxLines: 2,
+                  "Focus on what matters",
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 const Text(
                   "Align your day with your mission.\nLog in to access your personal task manager.",
                   style: TextStyle(
