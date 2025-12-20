@@ -5,7 +5,7 @@ import 'package:sptm/services/auth_service.dart';
 import 'package:sptm/views/auth/pages/login_page.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({ super.key });
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -28,10 +28,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final success = await authService.register(
-          nameCtrl.text,
-          phoneCtrl.text.trim(),
-          emailCtrl.text.trim(),
-          passwdCtrl.text
+        nameCtrl.text,
+        phoneCtrl.text.trim(),
+        emailCtrl.text.trim(),
+        passwdCtrl.text,
       );
 
       if (success) {
@@ -129,10 +129,6 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                ),
                 const SizedBox(height: 20),
                 Container(
                   width: 80,
@@ -141,8 +137,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     color: const Color(0xFF0B3B26),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(Icons.person_add,
-                      color: Color(0xFF06D66E), size: 48),
+                  child: const Icon(
+                    Icons.person_add,
+                    color: Color(0xFF06D66E),
+                    size: 48,
+                  ),
                 ),
                 const SizedBox(height: 28),
                 const Text(
@@ -209,21 +208,21 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Center(
                       child: loading
                           ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.black,
-                        ),
-                      )
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
                           : const Text(
-                        "Create Account",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
+                              "Create Account",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
                     ),
                   ),
                 ),
