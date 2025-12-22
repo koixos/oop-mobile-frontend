@@ -10,8 +10,9 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final emailRegex = RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$");
 
-    if (name.isEmpty || phone.isEmpty || email.isEmpty || passwd.isEmpty)
+    if (name.isEmpty || phone.isEmpty || email.isEmpty || passwd.isEmpty) {
       return false;
+    }
 
     if (!emailRegex.hasMatch(email)) return false;
 

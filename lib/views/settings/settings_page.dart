@@ -76,8 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     label: "Old Password",
                     controller: oldCtrl,
                     obscure: _hideOld,
-                    toggle: () =>
-                        setModalState(() => _hideOld = !_hideOld),
+                    toggle: () => setModalState(() => _hideOld = !_hideOld),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
                         return "Old password required";
@@ -110,7 +109,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   if (savedPassword == null || savedPassword != oldPwd) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Old password is incorrect")),
+                      const SnackBar(
+                        content: Text("Old password is incorrect"),
+                      ),
                     );
                     return;
                   }
@@ -122,7 +123,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   Navigator.pop(ctx);
 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Password changed successfully")),
+                    const SnackBar(
+                      content: Text("Password changed successfully"),
+                    ),
                   );
                 },
                 child: const Text("Save"),
@@ -139,19 +142,23 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF0C1F15),
-        title: const Text("Delete Account",
-            style: TextStyle(color: Colors.red)),
+        title: const Text(
+          "Delete Account",
+          style: TextStyle(color: Colors.red),
+        ),
         content: const Text(
           "This action cannot be undone.",
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel")),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Delete")),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete"),
+          ),
         ],
       ),
     );
@@ -165,7 +172,7 @@ class _SettingsPageState extends State<SettingsPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginPage()),
-            (route) => false,
+        (route) => false,
       );
     }
   }
@@ -177,8 +184,7 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Settings",
-            style: TextStyle(color: Colors.white)),
+        title: const Text("Settings", style: TextStyle(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -203,7 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icons.notifications_active,
             "Goal Reminders",
             goalReminders,
-                (v) {
+            (v) {
               setState(() => goalReminders = v);
               _saveBool("goalReminders", v);
             },
@@ -212,7 +218,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icons.lightbulb_outline,
             "Smart Nudges",
             smartNudges,
-                (v) {
+            (v) {
               setState(() => smartNudges = v);
               _saveBool("smartNudges", v);
             },
@@ -221,20 +227,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 24),
           _section("SYNCHRONIZATION & DATA"),
-          _switchTile(
-            Icons.cloud_sync,
-            "Sync to Cloud",
-            syncCloud,
-                (v) {
-              setState(() => syncCloud = v);
-              _saveBool("syncCloud", v);
-            },
-          ),
+          _switchTile(Icons.cloud_sync, "Sync to Cloud", syncCloud, (v) {
+            setState(() => syncCloud = v);
+            _saveBool("syncCloud", v);
+          }),
           _switchTile(
             Icons.storage,
             "Local-only Storage",
             localOnly,
-                (v) {
+            (v) {
               setState(() => localOnly = v);
               _saveBool("localOnly", v);
             },
@@ -247,16 +248,19 @@ class _SettingsPageState extends State<SettingsPage> {
           const Center(
             child: Column(
               children: [
-                Icon(Icons.check_circle,
-                    color: Color(0xFF06D66E)),
+                Icon(Icons.check_circle, color: Color(0xFF06D66E)),
                 SizedBox(height: 8),
-                Text("Smart Task Manager",
-                    style: TextStyle(color: Colors.white54)),
-                Text("Version 1.0.0 (Build 2023.10)",
-                    style: TextStyle(color: Colors.white38, fontSize: 12)),
+                Text(
+                  "Smart Task Manager",
+                  style: TextStyle(color: Colors.white54),
+                ),
+                Text(
+                  "Version 1.0.0 (Build 2023.10)",
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -291,10 +295,13 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _section(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(title,
-          style: const TextStyle(
-              color: Colors.white54,
-              fontWeight: FontWeight.bold)),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white54,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -302,8 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return _baseTile(
       icon,
       title,
-      trailing: const Icon(Icons.chevron_right,
-          color: Colors.white38),
+      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
       onTap: onTap,
     );
   }
@@ -312,8 +318,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return _baseTile(
       icon,
       title,
-      trailing:
-      Text(value, style: const TextStyle(color: Colors.white54)),
+      trailing: Text(value, style: const TextStyle(color: Colors.white54)),
     );
   }
 
@@ -327,33 +332,31 @@ class _SettingsPageState extends State<SettingsPage> {
           color: const Color(0xFF07160F),
           borderRadius: BorderRadius.circular(12),
         ),
-        child:
-        Text(value, style: const TextStyle(color: Colors.white)),
+        child: Text(value, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
 
   Widget _switchTile(
-      IconData icon,
-      String title,
-      bool value,
-      ValueChanged<bool> onChanged, {
-        String? subtitle,
-      }) {
+    IconData icon,
+    String title,
+    bool value,
+    ValueChanged<bool> onChanged, {
+    String? subtitle,
+  }) {
     return _baseTile(
       icon,
       title,
       subtitle: subtitle,
       trailing: Switch(
         value: value,
-        activeColor: const Color(0xFF06D66E),
+        activeThumbColor: const Color(0xFF06D66E),
         onChanged: onChanged,
       ),
     );
   }
 
-  Widget _dangerTile(
-      IconData icon, String title, VoidCallback onTap) {
+  Widget _dangerTile(IconData icon, String title, VoidCallback onTap) {
     return _baseTile(
       icon,
       title,
@@ -364,14 +367,14 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _baseTile(
-      IconData icon,
-      String title, {
-        Widget? trailing,
-        VoidCallback? onTap,
-        String? subtitle,
-        Color iconColor = const Color(0xFF06D66E),
-        Color textColor = Colors.white,
-      }) {
+    IconData icon,
+    String title, {
+    Widget? trailing,
+    VoidCallback? onTap,
+    String? subtitle,
+    Color iconColor = const Color(0xFF06D66E),
+    Color textColor = Colors.white,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -389,13 +392,15 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           child: Icon(icon, color: iconColor),
         ),
-        title: Text(title,
-            style:
-            TextStyle(color: textColor, fontWeight: FontWeight.w500)),
+        title: Text(
+          title,
+          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+        ),
         subtitle: subtitle != null
-            ? Text(subtitle,
-            style:
-            const TextStyle(color: Colors.white38, fontSize: 12))
+            ? Text(
+                subtitle,
+                style: const TextStyle(color: Colors.white38, fontSize: 12),
+              )
             : null,
         trailing: trailing,
       ),
