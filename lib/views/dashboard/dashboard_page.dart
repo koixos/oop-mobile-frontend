@@ -79,28 +79,28 @@ class _DashboardPageState extends State<DashboardPage> {
         Expanded(
           child: Row(
             children: [
-              // CircleAvatar(
-              //   backgroundColor: Color(0xFF0B3B26),
-              //   backgroundImage: profileImagePath != null
-              //       ? FileImage(File(profileImagePath!))
-              //       : null,
-              //   child: profileImagePath == null
-              //       ? const Icon(Icons.person, color: Colors.white)
-              //       : null,
-              // ),
-              // const SizedBox(width: 16),
-              // Expanded(
-              //   child: Text(
-              //     '$greeting, $firstName',
-              //     style: const TextStyle(
-              //       color: Colors.white,
-              //       fontSize: 20,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //     overflow: TextOverflow.ellipsis,
-              //     maxLines: 1,
-              //   ),
-              // ),
+              CircleAvatar(
+                backgroundColor: Color(0xFF0B3B26),
+                backgroundImage: profileImagePath != null
+                    ? FileImage(File(profileImagePath!))
+                    : null,
+                child: profileImagePath == null
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  '$greeting, $firstName',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
             ],
           ),
         ),
@@ -230,25 +230,70 @@ class _DashboardPageState extends State<DashboardPage> {
         'color': Colors.blue,
       },
       {
-        'title': "Finalize project proposal",
+        'title': "Finalize project proposal1",
+        'subtitle': "Launch Side Project",
+        'color': Colors.orange,
+      },
+      {
+        'title': "Finalize project proposal2",
+        'subtitle': "Launch Side Project",
+        'color': Colors.orange,
+      },
+      {
+        'title': "Finalize project proposal3",
+        'subtitle': "Launch Side Project",
+        'color': Colors.orange,
+      },
+      {
+        'title': "Finalize project proposal4",
         'subtitle': "Launch Side Project",
         'color': Colors.orange,
       },
     ];
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        final t = tasks[index];
-        return TaskCard(
-          title: t['title'] as String,
-          subtitle: t['subtitle'] as String,
-          color: (t['color'] as Color),
-          done: (t['Done'] as bool?) ?? false,
-        );
-      },
+    // return ListView.builder(
+    //   shrinkWrap: true,
+    //   physics: const NeverScrollableScrollPhysics(),
+    //   itemCount: tasks.length,
+    //   itemBuilder: (context, index) {
+    //     final t = tasks[index];
+    //     return TaskCard(
+    //       title: t['title'] as String,
+    //       subtitle: t['subtitle'] as String,
+    //       color: (t['color'] as Color),
+    //       done: (t['Done'] as bool?) ?? false,
+    //     );
+    //   },
+    // );
+
+    return Container(
+      height: 300,
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 35, 78, 56),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 8,
+            color: Colors.black.withOpacity(0.1),
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: tasks.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final t = tasks[index];
+          return TaskCard(
+            title: t['title'] as String,
+            subtitle: t['subtitle'] as String,
+            color: (t['color'] as Color),
+            done: (t['done'] as bool?) ?? false,
+          );
+        },
+      ),
     );
   }
 
@@ -274,11 +319,20 @@ class _DashboardPageState extends State<DashboardPage> {
                   _buildHeader(),
                   // const SizedBox(height: 16),
                   // _buildActiveGoals(),
+                  // const SizedBox(height: 16),
+                  // _buildPriorityMatrix(context),
+                  // const SizedBox(height: 18),
+                  // _buildTabs(),
                   const SizedBox(height: 16),
-                  _buildPriorityMatrix(context),
-                  const SizedBox(height: 18),
-                  _buildTabs(),
-                  const SizedBox(height: 12),
+                  Text(
+                    "My Tasks",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 25,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
                   _buildTaskList(),
                   const SizedBox(height: 40),
                 ],
