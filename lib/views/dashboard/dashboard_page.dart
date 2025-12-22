@@ -280,19 +280,54 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: tasks.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final t = tasks[index];
-          return TaskCard(
-            title: t['title'] as String,
-            subtitle: t['subtitle'] as String,
-            color: (t['color'] as Color),
-            done: (t['done'] as bool?) ?? false,
-          );
-        },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Text(
+                  "My Tasks",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(Icons.add_comment_outlined, color: Colors.white),
+                  onPressed: () {
+                    // TODO: add action
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  onPressed: () {
+                    // TODO: add action
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Colors.white24),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: tasks.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final t = tasks[index];
+                return TaskCard(
+                  title: t['title'] as String,
+                  subtitle: t['subtitle'] as String,
+                  color: (t['color'] as Color),
+                  done: (t['done'] as bool?) ?? false,
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -324,15 +359,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   // const SizedBox(height: 18),
                   // _buildTabs(),
                   const SizedBox(height: 16),
-                  Text(
-                    "My Tasks",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 25,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
                   _buildTaskList(),
                   const SizedBox(height: 40),
                 ],
