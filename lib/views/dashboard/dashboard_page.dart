@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/views/dashboard/widgets/goal_card.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
+import 'package:sptm/views/notifications/notifications_page.dart';
+import 'package:sptm/views/profile/settings_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -44,34 +46,61 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Color(0xFF07160F),
+      elevation: 0,
+      actions: [
+        IconButton(
+          icon: Icon(Icons.notifications, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const NotificationsPage(),
+              ),
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.settings, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildHeader() {
     return Row(
       children: [
         Expanded(
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: Color(0xFF0B3B26),
-                backgroundImage: profileImagePath != null
-                    ? FileImage(File(profileImagePath!))
-                    : null,
-                child: profileImagePath == null
-                    ? const Icon(Icons.person, color: Colors.white)
-                    : null,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  '$greeting, $firstName',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
+              // CircleAvatar(
+              //   backgroundColor: Color(0xFF0B3B26),
+              //   backgroundImage: profileImagePath != null
+              //       ? FileImage(File(profileImagePath!))
+              //       : null,
+              //   child: profileImagePath == null
+              //       ? const Icon(Icons.person, color: Colors.white)
+              //       : null,
+              // ),
+              // const SizedBox(width: 16),
+              // Expanded(
+              //   child: Text(
+              //     '$greeting, $firstName',
+              //     style: const TextStyle(
+              //       color: Colors.white,
+              //       fontSize: 20,
+              //       fontWeight: FontWeight.bold,
+              //     ),
+              //     overflow: TextOverflow.ellipsis,
+              //     maxLines: 1,
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -79,21 +108,21 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildActiveGoals() {
-    return SizedBox(
-      height: 170,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: const [
-          GoalCard(title: 'Run a 5k Marathon', imgUrl: '', progress: 0.75),
-          SizedBox(width: 12),
-          GoalCard(title: 'Run a 5k Marathon', imgUrl: '', progress: 0.4),
-          SizedBox(width: 12),
-          GoalCard(title: 'Run a 5k Marathon', imgUrl: '', progress: 0.6),
-        ],
-      ),
-    );
-  }
+  // Widget _buildActiveGoals() {
+  //   return SizedBox(
+  //     height: 170,
+  //     child: ListView(
+  //       scrollDirection: Axis.horizontal,
+  //       children: const [
+  //         GoalCard(title: 'Run a 5k Marathon', imgUrl: '', progress: 0.75),
+  //         SizedBox(width: 12),
+  //         GoalCard(title: 'Run a 5k Marathon', imgUrl: '', progress: 0.4),
+  //         SizedBox(width: 12),
+  //         GoalCard(title: 'Run a 5k Marathon', imgUrl: '', progress: 0.6),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildPriorityMatrix(BuildContext context) {
     return Container(
@@ -227,6 +256,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF07160F),
+      appBar: _buildAppBar(),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -242,8 +272,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   const SizedBox(height: 16),
                   _buildHeader(),
-                  const SizedBox(height: 16),
-                  _buildActiveGoals(),
+                  // const SizedBox(height: 16),
+                  // _buildActiveGoals(),
                   const SizedBox(height: 16),
                   _buildPriorityMatrix(context),
                   const SizedBox(height: 18),
