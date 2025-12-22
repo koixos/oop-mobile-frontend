@@ -211,7 +211,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildTaskList() {
+  Widget _buildTaskList(String urgency_importance) {
     final tasks = [
       {
         'title': "Finalize project proposal",
@@ -286,12 +286,12 @@ class _DashboardPageState extends State<DashboardPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const Text(
-                  "My Tasks",
+                Text(
+                  urgency_importance,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 15,
                   ),
                 ),
                 const Spacer(),
@@ -359,7 +359,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   // const SizedBox(height: 18),
                   // _buildTabs(),
                   const SizedBox(height: 16),
-                  _buildTaskList(),
+                  _buildTaskList("Urgent, Important"),
+                  const SizedBox(height: 16),
+                  _buildTaskList("Urgent, Not Important"),
+                  const SizedBox(height: 16),
+                  _buildTaskList("Not Urgent, Important"),
+                  const SizedBox(height: 16),
+                  _buildTaskList("Not Urgent, Not Important"),
                   const SizedBox(height: 40),
                 ],
               ),
