@@ -4,14 +4,12 @@ import 'package:sptm/core/constants.dart';
 class TaskCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final Color color;
   final bool done;
 
   const TaskCard({
     super.key,
     required this.title,
     required this.subtitle,
-    required this.color,
     this.done = false
   });
 
@@ -64,12 +62,6 @@ class TaskCard extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(width: 8),
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          )
         ],
       ),
     );

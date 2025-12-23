@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/core/constants.dart';
+import 'package:sptm/models/task_item.dart';
+import 'package:sptm/views/dashboard/widgets/task_card.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -9,6 +14,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
+  static const String _tasksKey = "dashboard_tasks";
   static const List<String> _monthNames = [
     'January',
     'February',
@@ -31,6 +37,13 @@ class _CalendarPageState extends State<CalendarPage> {
 
   DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   DateTime? _selectedDay;
+  final List<TaskItem> _tasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -43,6 +56,64 @@ class _CalendarPageState extends State<CalendarPage> {
   int _leadingEmptySlots(DateTime date) {
     final firstWeekday = DateTime(date.year, date.month, 1).weekday;
     return firstWeekday - 1;
+  }
+
+  Future<void> _loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawItems = prefs.getStringList(_tasksKey) ?? [];
+    final loadedTasks = <TaskItem>[];
+    for (final raw in rawItems) {
+      try {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        loadedTasks.add(TaskItem.fromJson(decoded));
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    setState(() {
+      _tasks
+        ..clear()
+        ..addAll(loadedTasks);
+    });
+  }
+
+  List<TaskItem> _tasksForSelectedDay() {
+    final selectedDay = _selectedDay;
+    if (selectedDay == null) return [];
+    return _tasks
+        .where((task) => _isSameDay(task.dueDate, selectedDay))
+        .toList();
+  }
+
+  String _formatDate(DateTime value) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    final month = months[value.month - 1];
+    return "$month ${value.day.toString().padLeft(2, "0")}";
+  }
+
+  String _urgencyLabel(TaskItem task) {
+    final urgency = task.urgent ? "Urgent" : "Not urgent";
+    final importance = task.important ? "Important" : "Not important";
+    return "$urgency · $importance";
+  }
+
+  Future<void> _selectDay(DateTime date) async {
+    setState(() {
+      _selectedDay = date;
+    });
+    await _loadTasks();
   }
 
   void _goToPreviousMonth() {
@@ -168,9 +239,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
         return GestureDetector(
           onTap: () {
-            setState(() {
-              _selectedDay = date;
-            });
+            _selectDay(date);
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -200,6 +269,8 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final dueTasks = _tasksForSelectedDay();
+
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
@@ -214,6 +285,8 @@ class _CalendarPageState extends State<CalendarPage> {
               const SizedBox(height: 12),
               _buildCalendarGrid(),
               const SizedBox(height: 24),
+
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -223,26 +296,58 @@ class _CalendarPageState extends State<CalendarPage> {
                   color: _card,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: 10,
-                      width: 10,
-                      decoration: BoxDecoration(
-                        color: _accent,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          "Tasks due",
+                          style: TextStyle(
+                            color: Color(AppColors.textMain),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          _selectedDay == null
+                              ? "-"
+                              : dueTasks.length.toString(),
+                          style: const TextStyle(
+                            color: Color(AppColors.textMuted),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      _selectedDay != null
-                          ? 'Selected: ${_selectedDay!.day} ${_monthNames[_selectedDay!.month - 1]}'
-                          : 'Tap a date to view your plan',
-                      style: const TextStyle(
-                        color: Color(AppColors.textMain),
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(height: 12),
+                    if (_selectedDay == null)
+                      const Text(
+                        "Select a date to see tasks due that day.",
+                        style: TextStyle(color: Color(AppColors.textMuted)),
+                      )
+                    else if (dueTasks.isEmpty)
+                      const Text(
+                        "No tasks due on this date.",
+                        style: TextStyle(color: Color(AppColors.textMuted)),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: dueTasks.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final task = dueTasks[index];
+                          return TaskCard(
+                            title: task.title,
+                            subtitle:
+                                "${task.mission} · ${task.context} · ${_urgencyLabel(task)}",
+                            done: task.done,
+                          );
+                        },
                       ),
-                    ),
                   ],
                 ),
               ),
