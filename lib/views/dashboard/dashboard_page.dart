@@ -7,6 +7,7 @@ import 'package:sptm/core/constants.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
 import 'package:sptm/views/notifications/notifications_page.dart';
 import 'package:sptm/views/settings/settings_page.dart';
+import 'package:sptm/views/tasks/task_details_page.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class DashboardPage extends StatefulWidget {
@@ -29,6 +30,14 @@ class _DashboardPageState extends State<DashboardPage>
   late final Animation<double> _listeningPulse;
   bool _isListening = false;
   bool _isQuickCaptureOpen = false;
+  final List<String> _contexts = ["@home", "@work", "@waiting"];
+  final Map<String, String?> _contextFilters = {
+    "urgent_important": null,
+    "urgent_not_important": null,
+    "not_urgent_important": null,
+    "not_urgent_not_important": null,
+  };
+  final List<_TaskItem> _tasks = [];
   final List<String> _quickCaptureMissions = const [
     "Health",
     "Career",
@@ -347,6 +356,473 @@ class _DashboardPageState extends State<DashboardPage>
     await prefs.setStringList(_inboxKey, items);
   }
 
+  String _formatDate(DateTime value) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    final month = months[value.month - 1];
+    return "$month ${value.day.toString().padLeft(2, "0")}";
+  }
+
+  Color _taskColor(bool urgent, bool important) {
+    if (urgent && important) {
+      return const Color(AppColors.danger);
+    }
+    if (urgent && !important) {
+      return const Color(AppColors.warning);
+    }
+    if (!urgent && important) {
+      return const Color(AppColors.secondaryIndigoLight);
+    }
+    return const Color(AppColors.accentPurple);
+  }
+
+  Future<void> _showContextFilterSheet(String filterKey) async {
+    final selected = _contextFilters[filterKey];
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(AppColors.surface),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              ListTile(
+                title: const Text(
+                  "All contexts",
+                  style: TextStyle(color: Color(AppColors.textMain)),
+                ),
+                trailing: selected == null
+                    ? const Icon(Icons.check, color: Color(AppColors.primary))
+                    : null,
+                onTap: () {
+                  setState(() => _contextFilters[filterKey] = null);
+                  Navigator.pop(context);
+                },
+              ),
+              ..._contexts.map(
+                (contextValue) => ListTile(
+                  title: Text(
+                    contextValue,
+                    style: const TextStyle(color: Color(AppColors.textMain)),
+                  ),
+                  trailing: selected == contextValue
+                      ? const Icon(Icons.check, color: Color(AppColors.primary))
+                      : null,
+                  onTap: () {
+                    setState(() => _contextFilters[filterKey] = contextValue);
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openAddTaskSheet() async {
+    final titleController = TextEditingController();
+    final dueDateController = TextEditingController();
+    bool? urgent;
+    bool? important;
+    String? selectedMission;
+    String? selectedContext;
+    DateTime? dueDate;
+    String? errorText;
+
+    Future<void> selectDueDate(StateSetter setModalState) async {
+      final now = DateTime.now();
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: dueDate ?? now,
+        firstDate: now.subtract(const Duration(days: 1)),
+        lastDate: DateTime(now.year + 5),
+      );
+      if (picked == null) return;
+      dueDate = picked;
+      dueDateController.text = _formatDate(picked);
+      setModalState(() {
+        errorText = null;
+      });
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(AppColors.surface),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (errorText != null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(AppColors.surfaceBase),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(AppColors.danger).withOpacity(0.6),
+                        ),
+                      ),
+                      child: Text(
+                        errorText!,
+                        style: const TextStyle(
+                          color: Color(AppColors.textMain),
+                        ),
+                      ),
+                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        "Add Task",
+                        style: TextStyle(
+                          color: Color(AppColors.textMain),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: Color(AppColors.textMuted),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<bool>(
+                    value: urgent,
+                    hint: const Text(
+                      "Task urgency",
+                      style: TextStyle(color: Color(AppColors.textMuted)),
+                    ),
+                    dropdownColor: const Color(AppColors.surface),
+                    iconEnabledColor: const Color(AppColors.textMuted),
+                    style: const TextStyle(color: Color(AppColors.textMain)),
+                    items: const [
+                      DropdownMenuItem(value: true, child: Text("Urgent")),
+                      DropdownMenuItem(value: false, child: Text("Not urgent")),
+                    ],
+                    onChanged: (value) {
+                      setModalState(() {
+                        urgent = value;
+                        errorText = null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(AppColors.surfaceBase),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<bool>(
+                    value: important,
+                    hint: const Text(
+                      "Task importance",
+                      style: TextStyle(color: Color(AppColors.textMuted)),
+                    ),
+                    dropdownColor: const Color(AppColors.surface),
+                    iconEnabledColor: const Color(AppColors.textMuted),
+                    style: const TextStyle(color: Color(AppColors.textMain)),
+                    items: const [
+                      DropdownMenuItem(value: true, child: Text("Important")),
+                      DropdownMenuItem(
+                        value: false,
+                        child: Text("Not important"),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setModalState(() {
+                        important = value;
+                        errorText = null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(AppColors.surfaceBase),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleController,
+                    textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      setModalState(() {
+                        errorText = null;
+                      });
+                    },
+                    style: const TextStyle(
+                      color: Color(AppColors.textMain),
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "Task title",
+                      hintStyle: const TextStyle(
+                        color: Color(AppColors.textMuted),
+                      ),
+                      filled: true,
+                      fillColor: const Color(AppColors.surfaceBase),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedMission,
+                    hint: const Text(
+                      "Linked sub-mission",
+                      style: TextStyle(color: Color(AppColors.textMuted)),
+                    ),
+                    dropdownColor: const Color(AppColors.surface),
+                    iconEnabledColor: const Color(AppColors.textMuted),
+                    style: const TextStyle(color: Color(AppColors.textMain)),
+                    items: _quickCaptureMissions
+                        .map(
+                          (mission) => DropdownMenuItem(
+                            value: mission,
+                            child: Text(mission),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setModalState(() {
+                        selectedMission = value;
+                        errorText = null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(AppColors.surfaceBase),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedContext,
+                    hint: const Text(
+                      "Context",
+                      style: TextStyle(color: Color(AppColors.textMuted)),
+                    ),
+                    dropdownColor: const Color(AppColors.surface),
+                    iconEnabledColor: const Color(AppColors.textMuted),
+                    style: const TextStyle(color: Color(AppColors.textMain)),
+                    items: [
+                      ..._contexts.map(
+                        (contextValue) => DropdownMenuItem(
+                          value: contextValue,
+                          child: Text(contextValue),
+                        ),
+                      ),
+                      const DropdownMenuItem(
+                        value: "__add__",
+                        child: Text("Add new context..."),
+                      ),
+                    ],
+                    onChanged: (value) async {
+                      if (value == "__add__") {
+                        final controller = TextEditingController();
+                        final result = await showDialog<String>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              backgroundColor: const Color(AppColors.surface),
+                              title: const Text(
+                                "Add Context",
+                                style: TextStyle(
+                                  color: Color(AppColors.textMain),
+                                ),
+                              ),
+                              content: TextField(
+                                controller: controller,
+                                autofocus: true,
+                                textInputAction: TextInputAction.done,
+                                style: const TextStyle(
+                                  color: Color(AppColors.textMain),
+                                ),
+                                decoration: const InputDecoration(
+                                  hintText: "e.g. @errands",
+                                  hintStyle: TextStyle(
+                                    color: Color(AppColors.textMuted),
+                                  ),
+                                ),
+                                onSubmitted: (_) {
+                                  Navigator.of(context).pop(controller.text);
+                                },
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text("Cancel"),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.of(
+                                    context,
+                                  ).pop(controller.text),
+                                  child: const Text("Add"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        final rawContext = result?.trim();
+                        if (rawContext == null || rawContext.isEmpty) {
+                          return;
+                        }
+                        final newContext = rawContext.startsWith("@")
+                            ? rawContext
+                            : "@$rawContext";
+                        if (!_contexts.contains(newContext)) {
+                          setState(() => _contexts.add(newContext));
+                        }
+                        setModalState(() {
+                          selectedContext = newContext;
+                          errorText = null;
+                        });
+                      } else {
+                        setModalState(() {
+                          selectedContext = value;
+                          errorText = null;
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(AppColors.surfaceBase),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: dueDateController,
+                    readOnly: true,
+                    onTap: () => selectDueDate(setModalState),
+                    style: const TextStyle(
+                      color: Color(AppColors.textMain),
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "Due date",
+                      hintStyle: const TextStyle(
+                        color: Color(AppColors.textMuted),
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.calendar_today,
+                        color: Color(AppColors.textMuted),
+                        size: 18,
+                      ),
+                      filled: true,
+                      fillColor: const Color(AppColors.surfaceBase),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(AppColors.primary),
+                        foregroundColor: const Color(AppColors.textInverted),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        final title = titleController.text.trim();
+                        if (urgent == null ||
+                            important == null ||
+                            title.isEmpty ||
+                            selectedMission == null ||
+                            selectedContext == null ||
+                            dueDate == null) {
+                          setModalState(() {
+                            errorText =
+                                "Please complete all task fields before saving.";
+                          });
+                          return;
+                        }
+                        setState(() {
+                          _tasks.insert(
+                            0,
+                            _TaskItem(
+                              title: title,
+                              mission: selectedMission!,
+                              context: selectedContext!,
+                              dueDate: dueDate!,
+                              urgent: urgent!,
+                              important: important!,
+                            ),
+                          );
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Add Task"),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: const Color(AppColors.background),
@@ -411,7 +887,15 @@ class _DashboardPageState extends State<DashboardPage>
             color: Color(AppColors.textMain),
           ),
           onPressed: _openQuickCaptureSheet,
-          tooltip: "Quick capture",
+          tooltip: "Quick inbox",
+        ),
+        IconButton(
+          icon: const Icon(
+            Icons.add_circle_outline,
+            color: Color(AppColors.textMain),
+          ),
+          onPressed: _openAddTaskSheet,
+          tooltip: "Add task",
         ),
       ],
     );
@@ -529,61 +1013,17 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildTaskList(String urgency_importance) {
-    final tasks = [
-      {
-        'title': "Finalize project proposal",
-        'subtitle': "Launch Side Project",
-        'color': const Color(AppColors.danger),
-      },
-      {
-        'title': "Finalize project proposal",
-        'subtitle': "Launch Side Project",
-        'done': true,
-        'color': const Color(AppColors.warning),
-      },
-      {
-        'title': "Finalize project proposal",
-        'subtitle': "Launch Side Project",
-        'color': const Color(AppColors.secondaryIndigoLight),
-      },
-      {
-        'title': "Finalize project proposal1",
-        'subtitle': "Launch Side Project",
-        'color': const Color(AppColors.warning),
-      },
-      {
-        'title': "Finalize project proposal2",
-        'subtitle': "Launch Side Project",
-        'color': const Color(AppColors.warning),
-      },
-      {
-        'title': "Finalize project proposal3",
-        'subtitle': "Launch Side Project",
-        'color': const Color(AppColors.warning),
-      },
-      {
-        'title': "Finalize project proposal4",
-        'subtitle': "Launch Side Project",
-        'color': const Color(AppColors.warning),
-      },
-    ];
-
-    // return ListView.builder(
-    //   shrinkWrap: true,
-    //   physics: const NeverScrollableScrollPhysics(),
-    //   itemCount: tasks.length,
-    //   itemBuilder: (context, index) {
-    //     final t = tasks[index];
-    //     return TaskCard(
-    //       title: t['title'] as String,
-    //       subtitle: t['subtitle'] as String,
-    //       color: (t['color'] as Color),
-    //       done: (t['Done'] as bool?) ?? false,
-    //     );
-    //   },
-    // );
-
+  Widget _buildTaskList(
+    String label,
+    bool urgent,
+    bool important,
+    String filterKey,
+  ) {
+    final contextFilter = _contextFilters[filterKey];
+    final tasks = _tasks
+        .where((task) => task.urgent == urgent && task.important == important)
+        .where((task) => contextFilter == null || task.context == contextFilter)
+        .toList();
     return Container(
       height: 300,
       margin: const EdgeInsets.only(bottom: 16),
@@ -605,7 +1045,7 @@ class _DashboardPageState extends State<DashboardPage>
             child: Row(
               children: [
                 Text(
-                  urgency_importance,
+                  label,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(AppColors.textMain),
@@ -614,30 +1054,62 @@ class _DashboardPageState extends State<DashboardPage>
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Color(AppColors.textMain)),
-                  onPressed: () {
-                    // TODO: add action
-                  },
+                  icon: const Icon(
+                    Icons.filter_list,
+                    color: Color(AppColors.textMain),
+                  ),
+                  onPressed: () => _showContextFilterSheet(filterKey),
+                  tooltip: "Filter by context",
                 ),
               ],
             ),
           ),
           const Divider(height: 1, color: Color(AppColors.surfaceBase)),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: tasks.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final t = tasks[index];
-                return TaskCard(
-                  title: t['title'] as String,
-                  subtitle: t['subtitle'] as String,
-                  color: (t['color'] as Color),
-                  done: (t['done'] as bool?) ?? false,
-                );
-              },
-            ),
+            child: tasks.isEmpty
+                ? const Center(
+                    child: Text(
+                      "No tasks yet. Tap + to add your first task.",
+                      style: TextStyle(color: Color(AppColors.textMuted)),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: tasks.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => TaskDetailsPage(
+                                title: task.title,
+                                submission: task.mission,
+                                dueDate: task.dueDate,
+                                context: task.context,
+                                onDelete: () {
+                                  setState(() {
+                                    _tasks.remove(task);
+                                  });
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        child: TaskCard(
+                          title: task.title,
+                          subtitle:
+                              "${task.mission} · ${task.context} · ${_formatDate(task.dueDate)}",
+                          color: _taskColor(task.urgent, task.important),
+                          done: task.done,
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -670,13 +1142,33 @@ class _DashboardPageState extends State<DashboardPage>
                   // const SizedBox(height: 18),
                   // _buildTabs(),
                   const SizedBox(height: 16),
-                  _buildTaskList("Urgent, Important"),
+                  _buildTaskList(
+                    "Urgent, Important",
+                    true,
+                    true,
+                    "urgent_important",
+                  ),
                   const SizedBox(height: 16),
-                  _buildTaskList("Urgent, Not Important"),
+                  _buildTaskList(
+                    "Urgent, Not Important",
+                    true,
+                    false,
+                    "urgent_not_important",
+                  ),
                   const SizedBox(height: 16),
-                  _buildTaskList("Not Urgent, Important"),
+                  _buildTaskList(
+                    "Not Urgent, Important",
+                    false,
+                    true,
+                    "not_urgent_important",
+                  ),
                   const SizedBox(height: 16),
-                  _buildTaskList("Not Urgent, Not Important"),
+                  _buildTaskList(
+                    "Not Urgent, Not Important",
+                    false,
+                    false,
+                    "not_urgent_not_important",
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -686,4 +1178,24 @@ class _DashboardPageState extends State<DashboardPage>
       ),
     );
   }
+}
+
+class _TaskItem {
+  final String title;
+  final String mission;
+  final String context;
+  final DateTime dueDate;
+  final bool urgent;
+  final bool important;
+  final bool done;
+
+  const _TaskItem({
+    required this.title,
+    required this.mission,
+    required this.context,
+    required this.dueDate,
+    required this.urgent,
+    required this.important,
+    this.done = false,
+  });
 }
