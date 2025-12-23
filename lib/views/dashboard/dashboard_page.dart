@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sptm/views/dashboard/widgets/goal_card.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
 import 'package:sptm/views/notifications/notifications_page.dart';
 import 'package:sptm/views/profile/settings_page.dart';
@@ -16,13 +15,17 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage>
+    with SingleTickerProviderStateMixin {
   static const String _inboxKey = "quick_capture_inbox_tasks";
   String greeting = "";
   String firstName = "";
   String? profileImagePath;
   final TextEditingController _quickTaskController = TextEditingController();
+  final FocusNode _quickTaskFocusNode = FocusNode();
   final stt.SpeechToText _speech = stt.SpeechToText();
+  late final AnimationController _listeningPulseController;
+  late final Animation<double> _listeningPulse;
   bool _isListening = false;
   bool _isQuickCaptureOpen = false;
   final List<String> _quickCaptureMissions = const [
@@ -37,11 +40,21 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _loadUserInfo();
+    _listeningPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _listeningPulse = CurvedAnimation(
+      parent: _listeningPulseController,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
   void dispose() {
     _quickTaskController.dispose();
+    _quickTaskFocusNode.dispose();
+    _listeningPulseController.dispose();
     _speech.stop();
     super.dispose();
   }
@@ -73,6 +86,8 @@ class _DashboardPageState extends State<DashboardPage> {
       if (!mounted) return;
       setState(() => _isListening = false);
       setModalState(() => _isListening = false);
+      _listeningPulseController.stop();
+      _listeningPulseController.value = 0;
       return;
     }
 
@@ -105,6 +120,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
     setState(() => _isListening = true);
     setModalState(() => _isListening = true);
+    _quickTaskFocusNode.requestFocus();
+    _listeningPulseController.repeat(reverse: true);
     await _speech.listen(
       onResult: (result) {
         if (!mounted) return;
@@ -162,6 +179,11 @@ class _DashboardPageState extends State<DashboardPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _quickTaskController,
+                    focusNode: _quickTaskFocusNode,
+                    showCursor: true,
+                    cursorColor: _isListening
+                        ? const Color(0xFF06D66E)
+                        : Colors.white70,
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                     decoration: InputDecoration(
                       hintText: "Task name",
@@ -176,14 +198,36 @@ class _DashboardPageState extends State<DashboardPage> {
                         Icons.keyboard,
                         color: Colors.white54,
                       ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isListening ? Icons.mic : Icons.mic_none,
-                          color: _isListening
-                              ? const Color(0xFF06D66E)
-                              : Colors.white54,
+                      suffixIcon: SizedBox(
+                        width: 64,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isListening)
+                              FadeTransition(
+                                opacity: _listeningPulse,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(right: 4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF06D66E),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            IconButton(
+                              icon: Icon(
+                                _isListening ? Icons.mic : Icons.mic_none,
+                                color: _isListening
+                                    ? const Color(0xFF06D66E)
+                                    : Colors.white54,
+                              ),
+                              onPressed: () => _toggleListening(setModalState),
+                            ),
+                          ],
                         ),
-                        onPressed: () => _toggleListening(setModalState),
                       ),
                     ),
                   ),
@@ -253,6 +297,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           await _speech.stop();
                           if (!mounted) return;
                           setState(() => _isListening = false);
+                          _listeningPulseController.stop();
+                          _listeningPulseController.value = 0;
                         }
                         Navigator.pop(context);
                       },
@@ -271,6 +317,8 @@ class _DashboardPageState extends State<DashboardPage> {
       if (mounted) {
         setState(() => _isListening = false);
       }
+      _listeningPulseController.stop();
+      _listeningPulseController.value = 0;
     }
     _isQuickCaptureOpen = false;
   }
