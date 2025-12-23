@@ -3,7 +3,7 @@ import 'package:sptm/views/archive/archive_page.dart';
 import 'package:sptm/views/calendar/calendar_page.dart';
 import 'package:sptm/views/dashboard/dashboard_page.dart';
 import 'package:sptm/views/insights/insights_page.dart';
-import 'package:sptm/views/missions/missions_page.dart';
+import 'package:sptm/views/missions/missions_list_page.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -17,7 +17,7 @@ class _MainShellState extends State<MainShell> {
 
   final pages = const [
     DashboardPage(),
-    MissionsPage(),
+    MissionsListPage(),
     CalendarPage(),
     InsightsPage(),
     ArchivePage(),
