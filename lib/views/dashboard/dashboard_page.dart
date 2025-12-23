@@ -339,6 +339,19 @@ class _DashboardPageState extends State<DashboardPage>
     return AppBar(
       backgroundColor: Color(0xFF07160F),
       elevation: 0,
+      leadingWidth: 56,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: CircleAvatar(
+          backgroundColor: const Color(0xFF0B3B26),
+          backgroundImage: profileImagePath != null
+              ? FileImage(File(profileImagePath!))
+              : null,
+          child: profileImagePath == null
+              ? const Icon(Icons.person, color: Colors.white)
+              : null,
+        ),
+      ),
       actions: [
         IconButton(
           icon: Icon(Icons.notifications, color: Colors.white),
@@ -366,31 +379,15 @@ class _DashboardPageState extends State<DashboardPage>
     return Row(
       children: [
         Expanded(
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Color(0xFF0B3B26),
-                backgroundImage: profileImagePath != null
-                    ? FileImage(File(profileImagePath!))
-                    : null,
-                child: profileImagePath == null
-                    ? const Icon(Icons.person, color: Colors.white)
-                    : null,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  '$greeting, $firstName',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ],
+          child: Text(
+            '$greeting, $firstName',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
         IconButton(
@@ -634,11 +631,10 @@ class _DashboardPageState extends State<DashboardPage>
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
                   _buildHeader(),
                   // const SizedBox(height: 16),
                   // _buildActiveGoals(),
