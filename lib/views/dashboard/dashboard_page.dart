@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
 import 'package:sptm/views/notifications/notifications_page.dart';
-import 'package:sptm/views/profile/settings_page.dart';
+import 'package:sptm/views/settings/settings_page.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class DashboardPage extends StatefulWidget {

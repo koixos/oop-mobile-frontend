@@ -16,7 +16,6 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _hideOld = true;
   bool _hideNew = true;
   bool goalReminders = true;
-  bool smartNudges = true;
   bool syncCloud = true;
   bool localOnly = false;
   bool biometricLock = false;
@@ -36,7 +35,6 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       goalReminders = prefs.getBool("goalReminders") ?? true;
-      smartNudges = prefs.getBool("smartNudges") ?? true;
       syncCloud = prefs.getBool("syncCloud") ?? true;
       localOnly = prefs.getBool("localOnly") ?? false;
       biometricLock = prefs.getBool("biometricLock") ?? false;
@@ -93,6 +91,25 @@ class _SettingsPageState extends State<SettingsPage> {
                     obscure: _hideNew,
                     toggle: () => setModalState(() => _hideNew = !_hideNew),
                     validator: Validators.validatePasswd,
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Password reset link sent to your email",
+                            ),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF06D66E),
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: const Text("Forgot password?"),
+                    ),
                   ),
                 ],
               ),
@@ -164,6 +181,40 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     if (confirm == true) {
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+    }
+  }
+
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF0C1F15),
+        title: const Text("Log Out", style: TextStyle(color: Colors.white)),
+        content: const Text(
+          "You can sign back in anytime.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Log Out"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
@@ -194,8 +245,9 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(16),
         children: [
           _section("GENERAL"),
-          _navTile(Icons.flag, "Mission Statement", () {}),
+          _navTile(Icons.edit, "Change Name", () {}),
           _navTile(Icons.lock_outline, "Change Password", changePassword),
+          _navTile(Icons.person, "Change Profile Picture", () {}),
 
           const SizedBox(height: 24),
           _section("REVIEW CADENCE"),
@@ -204,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 24),
           _section("NOTIFICATIONS"),
-          _timeTile(Icons.wb_sunny, "Daily Briefing", dailyBriefingTime),
+          _timeTile(Icons.wb_sunny, "Review Briefing", dailyBriefingTime),
           _switchTile(
             Icons.notifications_active,
             "Goal Reminders",
@@ -213,16 +265,6 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() => goalReminders = v);
               _saveBool("goalReminders", v);
             },
-          ),
-          _switchTile(
-            Icons.lightbulb_outline,
-            "Smart Nudges",
-            smartNudges,
-            (v) {
-              setState(() => smartNudges = v);
-              _saveBool("smartNudges", v);
-            },
-            subtitle: "AI-driven productivity tips",
           ),
 
           const SizedBox(height: 24),
@@ -243,6 +285,8 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           _navTile(Icons.download, "Export Data (CSV)", () {}),
           const SizedBox(height: 24),
+          _navTile(Icons.logout, "Log Out", _logout),
+          const SizedBox(height: 12),
           _dangerTile(Icons.delete, "Delete Account", _deleteAccount),
           const SizedBox(height: 32),
           const Center(
@@ -255,7 +299,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   style: TextStyle(color: Colors.white54),
                 ),
                 Text(
-                  "Version 1.0.0 (Build 2023.10)",
+                  "Version 1.0.0 (Build 2025.12)",
                   style: TextStyle(color: Colors.white38, fontSize: 12),
                 ),
               ],
