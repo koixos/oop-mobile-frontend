@@ -11,55 +11,16 @@ class MissionsListPage extends StatefulWidget {
 }
 
 class _MissionsListPageState extends State<MissionsListPage> {
-  final List<Map<String, Object>> _missions = [
-    {
-      'title': "Graduate University",
-      'color': const Color(AppColors.danger),
-      'submissions': [
-        MissionSubmission(
-          title: "Capstone proposal",
-          subtitle: "Submitted Mar 12, 2024",
-        ),
-        MissionSubmission(
-          title: "Pass Algo class",
-          subtitle: "Submitted Apr 02, 2024",
-        ),
-      ],
-    },
-    {
-      'title': "Find a Job",
-      'color': const Color(AppColors.warning),
-      'submissions': [
-        MissionSubmission(
-          title: "Apply to jobs",
-          subtitle: "Submitted Feb 21, 2024",
-        ),
-      ],
-    },
-    {
-      'title': "Improve Coding Skills",
-      'color': const Color(AppColors.secondaryIndigoLight),
-      'submissions': [
-        MissionSubmission(
-          title: "Practice Algorithms",
-          subtitle: "Submitted Mar 29, 2024",
-        ),
-        MissionSubmission(
-          title: "Learn Flutter and Dart",
-          subtitle: "Submitted Apr 06, 2024",
-        ),
-      ],
-    },
-    {
-      'title': "Improve Health",
-      'color': const Color(AppColors.accentPurple),
-      'submissions': [
-        MissionSubmission(
-          title: "Meal prep log",
-          subtitle: "Submitted Mar 18, 2024",
-        ),
-      ],
-    },
+  String _missionTitle = "Graduate University";
+  final List<MissionSubmission> _submissions = [
+    MissionSubmission(
+      title: "Capstone proposal",
+      subtitle: "Submitted Mar 12, 2024",
+    ),
+    MissionSubmission(
+      title: "Pass Algo class",
+      subtitle: "Submitted Apr 02, 2024",
+    ),
   ];
 
   @override
@@ -76,8 +37,27 @@ class _MissionsListPageState extends State<MissionsListPage> {
     setState(() {});
   }
 
-  Future<void> _showAddMissionDialog() async {
-    final controller = TextEditingController();
+  String _formatSubmissionDate(DateTime value) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    final month = months[value.month - 1];
+    return "$month ${value.day.toString().padLeft(2, "0")}, ${value.year}";
+  }
+
+  Future<void> _showEditMissionDialog() async {
+    final controller = TextEditingController(text: _missionTitle);
 
     final result = await showDialog<String>(
       context: context,
@@ -85,7 +65,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
         return AlertDialog(
           backgroundColor: const Color(AppColors.surface),
           title: const Text(
-            'Add Mission',
+            'Set Mission',
             style: TextStyle(color: Color(AppColors.textMain)),
           ),
           content: TextField(
@@ -94,7 +74,60 @@ class _MissionsListPageState extends State<MissionsListPage> {
             textInputAction: TextInputAction.done,
             style: const TextStyle(color: Color(AppColors.textMain)),
             decoration: const InputDecoration(
-              hintText: 'Mission title',
+              hintText: 'Write your mission',
+              hintStyle: TextStyle(color: Color(AppColors.textMuted)),
+            ),
+            onSubmitted: (_) => Navigator.of(context).pop(controller.text),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    final title = result?.trim();
+    if (title == null || title.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _missionTitle = title;
+    });
+  }
+
+  Future<void> _showAddSubmissionDialog() async {
+    if (_missionTitle.trim().isEmpty) {
+      await _showEditMissionDialog();
+      if (_missionTitle.trim().isEmpty) {
+        return;
+      }
+    }
+
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(AppColors.surface),
+          title: const Text(
+            'Add Sub-mission',
+            style: TextStyle(color: Color(AppColors.textMain)),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            style: const TextStyle(color: Color(AppColors.textMain)),
+            decoration: const InputDecoration(
+              hintText: 'Sub-mission title',
               hintStyle: TextStyle(color: Color(AppColors.textMuted)),
             ),
             onSubmitted: (_) => Navigator.of(context).pop(controller.text),
@@ -119,52 +152,63 @@ class _MissionsListPageState extends State<MissionsListPage> {
     }
 
     setState(() {
-      _missions.add({
-        'title': title,
-        'color': const Color(AppColors.tagCyan),
-        'submissions': <MissionSubmission>[],
-      });
+      _submissions.insert(
+        0,
+        MissionSubmission(
+          title: title,
+          subtitle: "Submitted ${_formatSubmissionDate(DateTime.now())}",
+        ),
+      );
     });
   }
 
-  Widget _buildValueHeader() {
+  Widget _buildMissionHeader() {
+    final hasMission = _missionTitle.trim().isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
         color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
       ),
-
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                'My Values:',
-                style: TextStyle(
-                  color: Color(AppColors.textMain),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'My Mission',
+                  style: TextStyle(
+                    color: Color(AppColors.textMain),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                '\"Be a good person\"',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Color(AppColors.textMain),
-                  fontStyle: FontStyle.italic,
+                const SizedBox(height: 6),
+                Text(
+                  hasMission ? _missionTitle : 'Tap to set your mission',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: hasMission
+                        ? const Color(AppColors.textMain)
+                        : const Color(AppColors.textMuted),
+                    fontStyle: hasMission ? FontStyle.italic : FontStyle.normal,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, color: Color(AppColors.textMain)),
+            onPressed: _showEditMissionDialog,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMissionsList() {
+  Widget _buildSubmissionsList() {
     return Container(
       height: 550,
       margin: const EdgeInsets.only(bottom: 16),
@@ -186,7 +230,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
             child: Row(
               children: [
                 Text(
-                  'My Missions',
+                  'Sub-missions',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(AppColors.textMain),
@@ -197,7 +241,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
                 IconButton(
                   icon: const Icon(Icons.add, color: Color(AppColors.textMain)),
                   onPressed: () {
-                    _showAddMissionDialog();
+                    _showAddSubmissionDialog();
                   },
                 ),
               ],
@@ -206,60 +250,52 @@ class _MissionsListPageState extends State<MissionsListPage> {
           const Divider(height: 1, color: Color(AppColors.surfaceBase)),
           Expanded(
             child: Scrollbar(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _missions.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final t = _missions[index];
-                  return Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MissionDetailPage(
-                              missionTitle: t['title'] as String,
-                              submissions:
-                                  t['submissions'] as List<MissionSubmission>,
+              child: _submissions.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No submissions yet.',
+                        style: TextStyle(color: Color(AppColors.textMuted)),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _submissions.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final submission = _submissions[index];
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(AppColors.surfaceBase),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const CircleAvatar(
+                              backgroundColor: Color(AppColors.tagCyan),
+                              radius: 6,
+                            ),
+                            title: Text(
+                              submission.title,
+                              style: const TextStyle(
+                                color: Color(AppColors.textMain),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              submission.subtitle,
+                              style: const TextStyle(
+                                color: Color(AppColors.textMuted),
+                              ),
                             ),
                           ),
                         );
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(AppColors.surfaceBase),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            backgroundColor: t['color'] as Color,
-                            radius: 6,
-                          ),
-                          title: Text(
-                            t['title'] as String,
-                            style: const TextStyle(
-                              color: Color(AppColors.textMain),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: Color(AppColors.textMuted),
-                          ),
-                        ),
-                      ),
                     ),
-                  );
-                },
-              ),
             ),
           ),
         ],
@@ -285,9 +321,9 @@ class _MissionsListPageState extends State<MissionsListPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  _buildValueHeader(),
+                  _buildMissionHeader(),
                   const SizedBox(height: 12),
-                  _buildMissionsList(),
+                  _buildSubmissionsList(),
                   const SizedBox(height: 40),
                 ],
               ),

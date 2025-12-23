@@ -78,7 +78,10 @@ class _MainShellState extends State<MainShell> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _navItem(icon: Icons.home, itemIndex: 0), // dashboard
-                _navItem(icon: Icons.flag, itemIndex: 1), // missions
+                _navItem(
+                  icon: Icons.track_changes_rounded,
+                  itemIndex: 1,
+                ), // missions
                 _navItem(icon: Icons.calendar_month, itemIndex: 2), // calendar
                 _navItem(icon: Icons.insights, itemIndex: 3), // insights
                 _navItem(icon: Icons.archive, itemIndex: 4), // archive
