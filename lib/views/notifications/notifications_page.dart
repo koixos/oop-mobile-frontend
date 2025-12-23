@@ -1,27 +1,35 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/services/notification_service.dart';
+
+// TODO if there are quick-add tasks not assigned, show a notification about that
 
 import '../../models/notification_item.dart';
 
 class NotificationsPage extends StatefulWidget {
-  const NotificationsPage({ super.key });
+  const NotificationsPage({super.key});
 
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> with SingleTickerProviderStateMixin {
+class _NotificationsPageState extends State<NotificationsPage>
+    with SingleTickerProviderStateMixin {
+  static const String _inboxKey = "quick_capture_inbox_tasks";
   final Color bg = const Color(0xFF04150C);
   final Color cardColor = const Color(0xFF0C1F15);
   final Color green = const Color(0xFF06D66E);
   late TabController tabController;
   late NotificationService service;
   List<NotificationItem> items = [];
+  List<_InboxTask> inboxTasks = [];
 
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 3, vsync: this);
+    tabController = TabController(length: 4, vsync: this);
     service = NotificationService();
     _loadData();
   }
@@ -53,7 +61,25 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
 
   Future<void> _loadData() async {
     items = await service.loadNotifications();
+    await _loadInboxTasks();
     setState(() {});
+  }
+
+  Future<void> _loadInboxTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawItems = prefs.getStringList(_inboxKey) ?? [];
+    inboxTasks = rawItems
+        .map((raw) {
+          try {
+            return _InboxTask.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<_InboxTask>()
+        .toList()
+        .reversed
+        .toList();
   }
 
   Future<void> _markAllRead() async {
@@ -84,7 +110,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
           ),
           tabs: const [
             Tab(text: "All"),
-            Tab(text: "Tasks"),
+            Tab(text: "Inbox"),
             Tab(text: "Reviews"),
           ],
         ),
@@ -139,25 +165,32 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
-                          fontWeight: FontWeight.w600
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    Text(time, style: const TextStyle(color: Colors.green, fontSize: 12)),
+                    Text(
+                      time,
+                      style: const TextStyle(color: Colors.green, fontSize: 12),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   message,
-                  style: const TextStyle(color: Colors.white60, height: 1.4, fontSize: 14),
+                  style: const TextStyle(
+                    color: Colors.white60,
+                    height: 1.4,
+                    fontSize: 14,
+                  ),
                 ),
                 if (actionButton != null) ...[
                   const SizedBox(height: 14),
                   actionButton,
-                ]
+                ],
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -186,7 +219,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
               shape: BoxShape.circle,
             ),
           ),
-        )
+        ),
       ],
     );
   }
@@ -203,7 +236,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
         style: const TextStyle(
           color: Color(0xFF06D66E),
           fontSize: 13,
-          fontWeight: FontWeight.w600
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -246,12 +279,19 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
-                              decoration:
-                              done ? TextDecoration.lineThrough : null,
+                              decoration: done
+                                  ? TextDecoration.lineThrough
+                                  : null,
                             ),
                           ),
                         ),
-                        Text(time, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                        Text(
+                          time,
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -305,6 +345,87 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     );
   }
 
+  Widget _buildNotificationsList() {
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        children: [
+          _buildSectionTitle("NEW"),
+          _buildNotificationCardNew(
+            icon: Icons.check_circle,
+            iconColor: green,
+            title: "Due Today: Complete draft for Project Proposal",
+            message:
+                "The initial draft is due by 5:00 PM. Don't forget to include the budget analysis section.",
+            time: "2m ago",
+          ),
+          _buildNotificationCardNew(
+            icon: Icons.flag,
+            iconColor: Colors.deepPurpleAccent,
+            title: "Quarterly Mission Statement Review",
+            message: "Your scheduled review starts in 10 minutes.",
+            time: "1h ago",
+            actionButton: _buildSmallActionButton("Start Review"),
+          ),
+          const SizedBox(height: 20),
+          _buildSectionTitle("EARLIER"),
+          _buildSwipeNotification(
+            title: "Alignment Tip",
+            message:
+                "You recently linked a task to your 'Health' mission. Try adding a workout or meditation...",
+            time: "Yesterday",
+          ),
+          _buildSwipeNotification(
+            title: "Buy Groceries",
+            message: "Marked as done from your daily list.",
+            time: "Yesterday",
+            done: true,
+          ),
+          _buildSwipeNotification(
+            title: "Weekly Retrospective",
+            message: "Ready to look back at your week?",
+            time: "2 days ago",
+            icon: Icons.assignment_turned_in,
+            iconColor: Colors.blueAccent,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInboxList() {
+    if (inboxTasks.isEmpty) {
+      return const Center(
+        child: Text(
+          "No inbox tasks yet.",
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        itemCount: inboxTasks.length,
+        itemBuilder: (context, index) {
+          final task = inboxTasks[index];
+          final missionLine = task.mission == null
+              ? "Inbox"
+              : "Mission: ${task.mission}";
+          return _buildSwipeNotification(
+            title: task.title,
+            message: missionLine,
+            time: "Recently",
+            icon: Icons.inbox,
+            iconColor: green,
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -318,49 +439,13 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             _buildTabs(),
             const Divider(color: Colors.white12, thickness: 1),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  children: [
-                    _buildSectionTitle("NEW"),
-                    _buildNotificationCardNew(
-                      icon: Icons.check_circle,
-                      iconColor: green,
-                      title: "Due Today: Complete draft for Project Proposal",
-                      message: "The initial draft is due by 5:00 PM. Don't forget to include the budget analysis section.",
-                      time: "2m ago",
-                    ),
-                    _buildNotificationCardNew(
-                      icon: Icons.flag,
-                      iconColor: Colors.deepPurpleAccent,
-                      title: "Quarterly Mission Statement Review",
-                      message: "Your scheduled review starts in 10 minutes.",
-                      time: "1h ago",
-                      actionButton: _buildSmallActionButton("Start Review"),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSectionTitle("EARLIER"),
-                    _buildSwipeNotification(
-                      title: "Alignment Tip",
-                      message: "You recently linked a task to your 'Health' mission. Try adding a workout or meditation...",
-                      time: "Yesterday",
-                    ),
-                    _buildSwipeNotification(
-                      title: "Buy Groceries",
-                      message: "Marked as done from your daily list.",
-                      time: "Yesterday",
-                      done: true,
-                    ),
-                    _buildSwipeNotification(
-                      title: "Weekly Retrospective",
-                      message: "Ready to look back at your week?",
-                      time: "2 days ago",
-                      icon: Icons.assignment_turned_in,
-                      iconColor: Colors.blueAccent,
-                    ),
-                  ],
-                ),
+              child: TabBarView(
+                controller: tabController,
+                children: [
+                  _buildNotificationsList(),
+                  _buildInboxList(),
+                  _buildNotificationsList(),
+                ],
               ),
             ),
           ],
@@ -370,3 +455,24 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
   }
 }
 
+class _InboxTask {
+  final String title;
+  final String? mission;
+  final DateTime createdAt;
+
+  const _InboxTask({
+    required this.title,
+    required this.createdAt,
+    this.mission,
+  });
+
+  factory _InboxTask.fromJson(Map<String, dynamic> json) {
+    return _InboxTask(
+      title: (json["title"] as String?) ?? "Untitled",
+      mission: json["mission"] as String?,
+      createdAt:
+          DateTime.tryParse(json["createdAt"] as String? ?? "") ??
+          DateTime.now(),
+    );
+  }
+}
