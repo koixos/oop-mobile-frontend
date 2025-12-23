@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/core/constants.dart';
+import 'package:sptm/models/task_item.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
 import 'package:sptm/views/notifications/notifications_page.dart';
 import 'package:sptm/views/settings/settings_page.dart';
@@ -20,6 +21,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage>
     with SingleTickerProviderStateMixin {
   static const String _inboxKey = "quick_capture_inbox_tasks";
+  static const String _tasksKey = "dashboard_tasks";
   String greeting = "";
   String firstName = "";
   String? profileImagePath;
@@ -37,7 +39,7 @@ class _DashboardPageState extends State<DashboardPage>
     "not_urgent_important": null,
     "not_urgent_not_important": null,
   };
-  final List<_TaskItem> _tasks = [];
+  final List<TaskItem> _tasks = [];
   final List<String> _quickCaptureMissions = const [
     "Health",
     "Career",
@@ -50,6 +52,7 @@ class _DashboardPageState extends State<DashboardPage>
   void initState() {
     super.initState();
     _loadUserInfo();
+    _loadTasks();
     _listeningPulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -88,6 +91,30 @@ class _DashboardPageState extends State<DashboardPage>
       profileImagePath = img;
       greeting = _getGreetingBasedOnTime();
     });
+  }
+
+  Future<void> _loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawItems = prefs.getStringList(_tasksKey) ?? [];
+    final loadedTasks = <TaskItem>[];
+    for (final raw in rawItems) {
+      try {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        loadedTasks.add(TaskItem.fromJson(decoded));
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    setState(() {
+      _tasks
+        ..clear()
+        ..addAll(loadedTasks);
+    });
+  }
+
+  Future<void> _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final payloads = _tasks.map((task) => jsonEncode(task.toJson())).toList();
+    await prefs.setStringList(_tasksKey, payloads);
   }
 
   Future<void> _toggleListening(StateSetter setModalState) async {
@@ -373,19 +400,6 @@ class _DashboardPageState extends State<DashboardPage>
     ];
     final month = months[value.month - 1];
     return "$month ${value.day.toString().padLeft(2, "0")}";
-  }
-
-  Color _taskColor(bool urgent, bool important) {
-    if (urgent && important) {
-      return const Color(AppColors.danger);
-    }
-    if (urgent && !important) {
-      return const Color(AppColors.warning);
-    }
-    if (!urgent && important) {
-      return const Color(AppColors.secondaryIndigoLight);
-    }
-    return const Color(AppColors.accentPurple);
   }
 
   Future<void> _showContextFilterSheet(String filterKey) async {
@@ -799,7 +813,7 @@ class _DashboardPageState extends State<DashboardPage>
                         setState(() {
                           _tasks.insert(
                             0,
-                            _TaskItem(
+                            TaskItem(
                               title: title,
                               mission: selectedMission!,
                               context: selectedContext!,
@@ -809,6 +823,7 @@ class _DashboardPageState extends State<DashboardPage>
                             ),
                           );
                         });
+                        _saveTasks();
                         Navigator.pop(context);
                       },
                       child: const Text("Add Task"),
@@ -1095,6 +1110,7 @@ class _DashboardPageState extends State<DashboardPage>
                                   setState(() {
                                     _tasks.remove(task);
                                   });
+                                  _saveTasks();
                                 },
                               ),
                             ),
@@ -1104,7 +1120,6 @@ class _DashboardPageState extends State<DashboardPage>
                           title: task.title,
                           subtitle:
                               "${task.mission} · ${task.context} · ${_formatDate(task.dueDate)}",
-                          color: _taskColor(task.urgent, task.important),
                           done: task.done,
                         ),
                       );
@@ -1178,24 +1193,4 @@ class _DashboardPageState extends State<DashboardPage>
       ),
     );
   }
-}
-
-class _TaskItem {
-  final String title;
-  final String mission;
-  final String context;
-  final DateTime dueDate;
-  final bool urgent;
-  final bool important;
-  final bool done;
-
-  const _TaskItem({
-    required this.title,
-    required this.mission,
-    required this.context,
-    required this.dueDate,
-    required this.urgent,
-    required this.important,
-    this.done = false,
-  });
 }
