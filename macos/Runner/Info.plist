@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Allow microphone access to capture tasks by voice.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Allow speech recognition to convert your voice into tasks.</string>
 </dict>
 </plist>
