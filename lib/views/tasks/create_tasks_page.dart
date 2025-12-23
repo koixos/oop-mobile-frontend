@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sptm/core/constants.dart';
 
 class CreateTaskPage extends StatefulWidget {
   const CreateTaskPage({super.key});
@@ -14,9 +15,9 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   int priority = 2; // 0=Low,1=Med,2=High
   double effortMinutes = 45;
 
-  final Color bg = const Color(0xFF07160F);
-  final Color card = const Color(0xFF0C1F15);
-  final Color green = const Color(0xFF06D66E);
+  final Color bg = const Color(AppColors.background);
+  final Color card = const Color(AppColors.surface);
+  final Color green = const Color(AppColors.primary);
 
   @override
   Widget build(BuildContext context) {
@@ -63,19 +64,19 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       leading: TextButton(
         onPressed: () => Navigator.pop(context),
         child: const Text("Cancel",
-            style: TextStyle(color: Colors.white54)),
+            style: TextStyle(color: Color(AppColors.textMuted))),
       ),
       centerTitle: true,
       title: const Text(
         "Create Task",
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: TextStyle(color: Color(AppColors.textMain), fontWeight: FontWeight.bold),
       ),
       actions: [
         TextButton(
           onPressed: _saveTask,
           child: const Text(
             "Save",
-            style: TextStyle(color: Color(0xFF06D66E), fontSize: 16),
+            style: TextStyle(color: Color(AppColors.primary), fontSize: 16),
           ),
         ),
       ],
@@ -89,19 +90,21 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
         TextField(
           controller: titleCtrl,
           style: const TextStyle(
-              color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+              color: Color(AppColors.textMain),
+              fontSize: 28,
+              fontWeight: FontWeight.bold),
           decoration: const InputDecoration(
             hintText: "What needs to be done?",
-            hintStyle: TextStyle(color: Colors.white38),
+            hintStyle: TextStyle(color: Color(AppColors.textMuted)),
             border: InputBorder.none,
           ),
         ),
         TextField(
           controller: notesCtrl,
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Color(AppColors.textMuted)),
           decoration: const InputDecoration(
             hintText: "Add notes, details, or subtasks...",
-            hintStyle: TextStyle(color: Colors.white38),
+            hintStyle: TextStyle(color: Color(AppColors.textMuted)),
             border: InputBorder.none,
           ),
         ),
@@ -113,7 +116,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.white54,
+        color: Color(AppColors.textMuted),
         fontWeight: FontWeight.bold,
         letterSpacing: 1,
       ),
@@ -141,7 +144,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(Icons.rocket_launch,
-                    color: Color(0xFF06D66E)),
+                    color: Color(AppColors.primary)),
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -151,18 +154,18 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                     Text(
                       "Become a Senior Dev",
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Color(AppColors.textMain),
                           fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4),
                     Text(
                       "Q3 Goal: Master System Design",
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Color(AppColors.textMuted)),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.white38),
+              const Icon(Icons.chevron_right, color: Color(AppColors.textMuted)),
             ],
           ),
           const SizedBox(height: 12),
@@ -172,7 +175,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
               value: 0.75,
               minHeight: 6,
               color: green,
-              backgroundColor: Colors.white12,
+              backgroundColor: const Color(AppColors.surfaceBase),
             ),
           ),
         ],
@@ -191,7 +194,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Text("Today, 4:00 PM",
-            style: TextStyle(color: Color(0xFF06D66E))),
+            style: TextStyle(color: Color(AppColors.primary))),
       ),
     );
   }
@@ -208,7 +211,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
         children: [
           const Text("Priority",
               style:
-              TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              TextStyle(color: Color(AppColors.textMain), fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Row(
             children: List.generate(3, (i) {
@@ -229,8 +232,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                         labels[i],
                         style: TextStyle(
                           color: selected
-                              ? Colors.black
-                              : Colors.white54,
+                              ? const Color(AppColors.textInverted)
+                              : const Color(AppColors.textMuted),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -259,7 +262,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             children: [
               const Text("Effort",
                   style: TextStyle(
-                      color: Colors.white,
+                      color: Color(AppColors.textMain),
                       fontWeight: FontWeight.bold)),
               const Spacer(),
               Container(
@@ -271,7 +274,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                 ),
                 child: Text("${effortMinutes.toInt()}m",
                     style:
-                    const TextStyle(color: Color(0xFF06D66E))),
+                    const TextStyle(color: Color(AppColors.primary))),
               ),
             ],
           ),
@@ -281,7 +284,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             max: 180,
             divisions: 35,
             activeColor: green,
-            inactiveColor: Colors.white12,
+            inactiveColor: const Color(AppColors.surfaceBase),
             onChanged: (v) => setState(() => effortMinutes = v),
           )
         ],
@@ -294,12 +297,12 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       children: [
         const Text("CONTEXTS & TAGS",
             style:
-            TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
+            TextStyle(color: Color(AppColors.textMuted), fontWeight: FontWeight.bold)),
         const Spacer(),
         TextButton(
           onPressed: () {},
           child:
-          const Text("Edit", style: TextStyle(color: Color(0xFF06D66E))),
+          const Text("Edit", style: TextStyle(color: Color(AppColors.primary))),
         ),
       ],
     );
@@ -312,13 +315,13 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             icon: Icons.location_on,
             title: "Add location",
             trailing:
-            const Icon(Icons.chevron_right, color: Colors.white38)),
+            const Icon(Icons.chevron_right, color: Color(AppColors.textMuted))),
         const SizedBox(height: 12),
         _simpleCard(
             icon: Icons.subdirectory_arrow_right,
             title: "Add parent task",
             trailing:
-            const Icon(Icons.chevron_right, color: Colors.white38)),
+            const Icon(Icons.chevron_right, color: Color(AppColors.textMuted))),
       ],
     );
   }
@@ -348,7 +351,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
           Expanded(
             child: Text(title,
                 style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(AppColors.textMain),
                     fontWeight: FontWeight.bold)),
           ),
           trailing,

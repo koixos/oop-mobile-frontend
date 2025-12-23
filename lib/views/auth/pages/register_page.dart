@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
 import 'package:sptm/views/auth/pages/login_page.dart';
@@ -48,7 +49,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: const TextStyle(color: Color(AppColors.textMain), fontSize: 15),
     );
   }
 
@@ -61,17 +62,17 @@ class _RegisterPageState extends State<RegisterPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1F15),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(16),
       ),
       child: TextFormField(
         controller: controller,
         validator: validator,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
-          icon: Icon(icon, color: Colors.white70),
+          icon: Icon(icon, color: const Color(AppColors.textMuted)),
           hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white38),
+          hintStyle: const TextStyle(color: Color(AppColors.textMuted)),
           border: InputBorder.none,
         ),
       ),
@@ -82,23 +83,26 @@ class _RegisterPageState extends State<RegisterPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1F15),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(16),
       ),
       child: TextFormField(
         controller: passwdCtrl,
         obscureText: obscure,
         validator: Validators.validatePasswd,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
-          icon: const Icon(Icons.lock_outline, color: Colors.white70),
+          icon: const Icon(
+            Icons.lock_outline,
+            color: Color(AppColors.textMuted),
+          ),
           hintText: "Enter your password",
-          hintStyle: const TextStyle(color: Colors.white38),
+          hintStyle: const TextStyle(color: Color(AppColors.textMuted)),
           border: InputBorder.none,
           suffixIcon: IconButton(
             icon: Icon(
               obscure ? Icons.visibility_off : Icons.visibility,
-              color: Colors.white54,
+              color: const Color(AppColors.textMuted),
             ),
             onPressed: () => setState(() => obscure = !obscure),
           ),
@@ -119,7 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF04150C),
+      backgroundColor: const Color(AppColors.background),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -134,12 +138,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B3B26),
+                    color: const Color(AppColors.surfaceBase),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
                     Icons.person_add,
-                    color: Color(0xFF06D66E),
+                    color: Color(AppColors.primary),
                     size: 48,
                   ),
                 ),
@@ -148,7 +152,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   "Create your account",
                   style: TextStyle(
                     fontSize: 32,
-                    color: Colors.white,
+                    color: Color(AppColors.textMain),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -156,7 +160,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const Text(
                   "Start organizing your goals and tasks with a personalized account.",
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Color(AppColors.textMuted),
                     height: 1.5,
                     fontSize: 15,
                   ),
@@ -195,11 +199,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06D66E),
+                      color: const Color(AppColors.primary),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF06D66E).withOpacity(0.4),
+                          color: const Color(
+                            AppColors.primary,
+                          ).withOpacity(0.4),
                           blurRadius: 14,
                           spreadRadius: 1,
                         ),
@@ -212,7 +218,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.black,
+                                color: Color(AppColors.textInverted),
                               ),
                             )
                           : const Text(
@@ -220,7 +226,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: Color(AppColors.textInverted),
                               ),
                             ),
                     ),
@@ -235,7 +241,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     child: const Text(
                       "Already have an account?",
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Color(AppColors.textMuted)),
                     ),
                   ),
                 ),

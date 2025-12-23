@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sptm/core/constants.dart';
 
 class TaskCard extends StatelessWidget {
   final String title;
@@ -19,7 +20,7 @@ class TaskCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D241D),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -31,10 +32,12 @@ class TaskCard extends StatelessWidget {
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF06D66E), width: 3),
-                color: done ? const Color(0xFF06D66E) : Colors.transparent,
+                border: Border.all(color: const Color(AppColors.primary), width: 3),
+                color: done ? const Color(AppColors.primary) : Colors.transparent,
               ),
-              child: done ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
+              child: done
+                  ? const Icon(Icons.check, color: Color(AppColors.textMain), size: 20)
+                  : null,
             ),
           ),
           const SizedBox(width: 12),
@@ -48,11 +51,16 @@ class TaskCard extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       decoration: done ? TextDecoration.lineThrough : TextDecoration.none,
-                      color: done ? Colors.white54 : Colors.white,
+                      color: done
+                          ? const Color(AppColors.textMuted)
+                          : const Color(AppColors.textMain),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(subtitle, style: const TextStyle(color: Color(0xFF37BF6C))),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Color(AppColors.textMuted)),
+                  ),
                 ],
               ),
             ),

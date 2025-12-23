@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sptm/core/constants.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -23,10 +24,10 @@ class _CalendarPageState extends State<CalendarPage> {
     'December',
   ];
 
-  final Color _background = const Color(0xFF07160F);
-  final Color _card = const Color(0xFF0D241D);
-  final Color _accent = const Color(0xFF06D66E);
-  final Color _muted = const Color(0xFF37BF6C);
+  final Color _background = const Color(AppColors.background);
+  final Color _card = const Color(AppColors.surface);
+  final Color _accent = const Color(AppColors.primary);
+  final Color _muted = const Color(AppColors.textMuted);
 
   DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   DateTime? _selectedDay;
@@ -66,7 +67,7 @@ class _CalendarPageState extends State<CalendarPage> {
         const Text(
           'Calendar',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(AppColors.textMain),
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -77,7 +78,7 @@ class _CalendarPageState extends State<CalendarPage> {
             IconButton(
               onPressed: _goToPreviousMonth,
               icon: const Icon(Icons.chevron_left),
-              color: Colors.white,
+              color: const Color(AppColors.textMain),
               splashRadius: 20,
             ),
             Expanded(
@@ -94,7 +95,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   monthLabel,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(AppColors.textMain),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -104,7 +105,7 @@ class _CalendarPageState extends State<CalendarPage> {
             IconButton(
               onPressed: _goToNextMonth,
               icon: const Icon(Icons.chevron_right),
-              color: Colors.white,
+              color: const Color(AppColors.textMain),
               splashRadius: 20,
             ),
           ],
@@ -184,7 +185,9 @@ class _CalendarPageState extends State<CalendarPage> {
               child: Text(
                 '$dayNumber',
                 style: TextStyle(
-                  color: isSelected ? Colors.black : Colors.white,
+                  color: isSelected
+                      ? const Color(AppColors.textInverted)
+                      : const Color(AppColors.textMain),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -236,7 +239,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           ? 'Selected: ${_selectedDay!.day} ${_monthNames[_selectedDay!.month - 1]}'
                           : 'Tap a date to view your plan',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(AppColors.textMain),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

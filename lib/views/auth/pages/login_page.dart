@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/app/main_shell.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
 import 'package:sptm/views/auth/dialogs/forgot_passwd_dialog.dart';
@@ -69,18 +70,18 @@ class _LoginPageState extends State<LoginPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1F15),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: TextFormField(
         controller: controller,
         validator: validator,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
-          icon: Icon(icon, color: Colors.white70),
+          icon: Icon(icon, color: const Color(AppColors.textMuted)),
           hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white38),
+          hintStyle: const TextStyle(color: Color(AppColors.textMuted)),
           border: InputBorder.none,
         ),
       ),
@@ -90,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildPasswordField() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1F15),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -98,16 +99,19 @@ class _LoginPageState extends State<LoginPage> {
         controller: passwdCtrl,
         obscureText: obscure,
         validator: Validators.validatePasswd,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
-          icon: const Icon(Icons.lock_outline, color: Colors.white70),
+          icon: const Icon(
+            Icons.lock_outline,
+            color: Color(AppColors.textMuted),
+          ),
           hintText: "Enter your password",
-          hintStyle: const TextStyle(color: Colors.white38),
+          hintStyle: const TextStyle(color: Color(AppColors.textMuted)),
           border: InputBorder.none,
           suffixIcon: IconButton(
             icon: Icon(
               obscure ? Icons.visibility_off : Icons.visibility,
-              color: Colors.white54,
+              color: const Color(AppColors.textMuted),
             ),
             onPressed: () => setState(() => obscure = !obscure),
           ),
@@ -120,17 +124,23 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1F15),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, color: Colors.white70),
+            Icon(icon, color: const Color(AppColors.textMuted)),
             const SizedBox(width: 8),
           ],
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 15)),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Color(AppColors.textMain),
+              fontSize: 15,
+            ),
+          ),
         ],
       ),
     );
@@ -146,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF04150C),
+      backgroundColor: const Color(AppColors.background),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -161,13 +171,13 @@ class _LoginPageState extends State<LoginPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B3B26),
+                    color: const Color(AppColors.surfaceBase),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
                     Icons.check_circle,
                     size: 50,
-                    color: Color(0xFF06D66E),
+                    color: Color(AppColors.primary),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -176,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                   "Focus on what matters",
                   style: TextStyle(
                     fontSize: 30,
-                    color: Colors.white,
+                    color: Color(AppColors.textMain),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -185,14 +195,17 @@ class _LoginPageState extends State<LoginPage> {
                   "Align your day with your mission.\nLog in to access your personal task manager.",
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.white70,
+                    color: Color(AppColors.textMuted),
                     height: 1.5,
                   ),
                 ),
                 const SizedBox(height: 34),
                 const Text(
                   "Email",
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(
+                    color: Color(AppColors.textMain),
+                    fontSize: 15,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildInputField(
@@ -204,7 +217,10 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 22),
                 const Text(
                   "Password",
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(
+                    color: Color(AppColors.textMain),
+                    fontSize: 15,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildPasswordField(),
@@ -216,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: const Text(
                       "Forgot Password?",
                       style: TextStyle(
-                        color: Color(0xFF06D66E),
+                        color: Color(AppColors.primary),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -229,11 +245,13 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF06D66E),
+                      color: const Color(AppColors.primary),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF06D66E).withOpacity(0.4),
+                          color: const Color(
+                            AppColors.primary,
+                          ).withOpacity(0.4),
                           blurRadius: 14,
                           spreadRadius: 1,
                         ),
@@ -246,14 +264,14 @@ class _LoginPageState extends State<LoginPage> {
                               height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.black,
+                                color: Color(AppColors.textInverted),
                               ),
                             )
                           : const Text(
                               "Log In",
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Colors.black,
+                                color: Color(AppColors.textInverted),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -269,20 +287,27 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: const Text(
                       "I don't have an account.",
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Color(AppColors.textMuted)),
                     ),
                   ),
                 ),
                 Row(
                   children: const [
-                    Expanded(child: Divider(color: Colors.white24)),
+                    Expanded(
+                      child: Divider(color: Color(AppColors.surfaceBase)),
+                    ),
                     SizedBox(width: 10),
                     Text(
                       "OR CONTINUE WITH",
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                      style: TextStyle(
+                        color: Color(AppColors.textMuted),
+                        fontSize: 12,
+                      ),
                     ),
                     SizedBox(width: 10),
-                    Expanded(child: Divider(color: Colors.white24)),
+                    Expanded(
+                      child: Divider(color: Color(AppColors.surfaceBase)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 28),

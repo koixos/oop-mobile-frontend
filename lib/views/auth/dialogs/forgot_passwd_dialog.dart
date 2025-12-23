@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
 
@@ -255,7 +256,7 @@ class _ForgotPasswdDialogState extends State<ForgotPasswdDialog> {
           else
             const Text(
               'Code expired. You may resend.',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Color(AppColors.danger)),
             ),
         ],
       ),

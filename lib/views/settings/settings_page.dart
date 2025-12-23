@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/core/validators.dart';
 
 import '../auth/pages/login_page.dart';
@@ -48,7 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> changePassword() async {
-    final Color cardColor = const Color(0xFF0C1F15);
+    final Color cardColor = const Color(AppColors.surface);
     final oldCtrl = TextEditingController();
     final newCtrl = TextEditingController();
 
@@ -63,7 +64,7 @@ class _SettingsPageState extends State<SettingsPage> {
             backgroundColor: cardColor,
             title: const Text(
               "Change Password",
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Color(AppColors.textMain)),
             ),
             content: Form(
               key: _changePwdFormKey,
@@ -105,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         );
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF06D66E),
+                        foregroundColor: const Color(AppColors.primary),
                         padding: EdgeInsets.zero,
                       ),
                       child: const Text("Forgot password?"),
@@ -158,14 +159,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF0C1F15),
+        backgroundColor: const Color(AppColors.surface),
         title: const Text(
           "Delete Account",
-          style: TextStyle(color: Colors.red),
+          style: TextStyle(color: Color(AppColors.danger)),
         ),
         content: const Text(
           "This action cannot be undone.",
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Color(AppColors.textMuted)),
         ),
         actions: [
           TextButton(
@@ -195,11 +196,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF0C1F15),
-        title: const Text("Log Out", style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(AppColors.surface),
+        title: const Text(
+          "Log Out",
+          style: TextStyle(color: Color(AppColors.textMain)),
+        ),
         content: const Text(
           "You can sign back in anytime.",
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Color(AppColors.textMuted)),
         ),
         actions: [
           TextButton(
@@ -231,13 +235,16 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07160F),
+      backgroundColor: const Color(AppColors.background),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Settings", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Settings",
+          style: TextStyle(color: Color(AppColors.textMain)),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Color(AppColors.textMain)),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -292,15 +299,15 @@ class _SettingsPageState extends State<SettingsPage> {
           const Center(
             child: Column(
               children: [
-                Icon(Icons.check_circle, color: Color(0xFF06D66E)),
+                Icon(Icons.check_circle, color: Color(AppColors.success)),
                 SizedBox(height: 8),
                 Text(
                   "Smart Task Manager",
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(color: Color(AppColors.textMuted)),
                 ),
                 Text(
                   "Version 1.0.0 (Build 2025.12)",
-                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                  style: TextStyle(color: Color(AppColors.textMuted), fontSize: 12),
                 ),
               ],
             ),
@@ -320,15 +327,15 @@ class _SettingsPageState extends State<SettingsPage> {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Color(AppColors.textMain)),
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54),
+        labelStyle: const TextStyle(color: Color(AppColors.textMuted)),
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_off : Icons.visibility,
-            color: Colors.white54,
+            color: const Color(AppColors.textMuted),
           ),
           onPressed: toggle,
         ),
@@ -342,7 +349,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Text(
         title,
         style: const TextStyle(
-          color: Colors.white54,
+          color: Color(AppColors.textMuted),
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -353,7 +360,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return _baseTile(
       icon,
       title,
-      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+      trailing: const Icon(Icons.chevron_right, color: Color(AppColors.textMuted)),
       onTap: onTap,
     );
   }
@@ -362,7 +369,10 @@ class _SettingsPageState extends State<SettingsPage> {
     return _baseTile(
       icon,
       title,
-      trailing: Text(value, style: const TextStyle(color: Colors.white54)),
+      trailing: Text(
+        value,
+        style: const TextStyle(color: Color(AppColors.textMuted)),
+      ),
     );
   }
 
@@ -373,10 +383,13 @@ class _SettingsPageState extends State<SettingsPage> {
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFF07160F),
+          color: const Color(AppColors.surfaceBase),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(value, style: const TextStyle(color: Colors.white)),
+        child: Text(
+          value,
+          style: const TextStyle(color: Color(AppColors.textMain)),
+        ),
       ),
     );
   }
@@ -394,7 +407,7 @@ class _SettingsPageState extends State<SettingsPage> {
       subtitle: subtitle,
       trailing: Switch(
         value: value,
-        activeThumbColor: const Color(0xFF06D66E),
+        activeThumbColor: const Color(AppColors.primary),
         onChanged: onChanged,
       ),
     );
@@ -405,8 +418,8 @@ class _SettingsPageState extends State<SettingsPage> {
       icon,
       title,
       onTap: onTap,
-      iconColor: Colors.red,
-      textColor: Colors.red,
+      iconColor: const Color(AppColors.danger),
+      textColor: const Color(AppColors.danger),
     );
   }
 
@@ -416,13 +429,13 @@ class _SettingsPageState extends State<SettingsPage> {
     Widget? trailing,
     VoidCallback? onTap,
     String? subtitle,
-    Color iconColor = const Color(0xFF06D66E),
-    Color textColor = Colors.white,
+    Color iconColor = const Color(AppColors.primary),
+    Color textColor = const Color(AppColors.textMain),
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C1F15),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
@@ -443,7 +456,10 @@ class _SettingsPageState extends State<SettingsPage> {
         subtitle: subtitle != null
             ? Text(
                 subtitle,
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: const TextStyle(
+                  color: Color(AppColors.textMuted),
+                  fontSize: 12,
+                ),
               )
             : null,
         trailing: trailing,

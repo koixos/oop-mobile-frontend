@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/views/missions/mission_detail_page.dart';
 
 class MissionsListPage extends StatefulWidget {
@@ -13,7 +14,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
   final List<Map<String, Object>> _missions = [
     {
       'title': "Graduate University",
-      'color': Colors.red,
+      'color': const Color(AppColors.danger),
       'submissions': [
         MissionSubmission(
           title: "Capstone proposal",
@@ -27,7 +28,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
     },
     {
       'title': "Find a Job",
-      'color': Colors.orange,
+      'color': const Color(AppColors.warning),
       'submissions': [
         MissionSubmission(
           title: "Apply to jobs",
@@ -37,7 +38,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
     },
     {
       'title': "Improve Coding Skills",
-      'color': Colors.blue,
+      'color': const Color(AppColors.secondaryIndigoLight),
       'submissions': [
         MissionSubmission(
           title: "Practice Algorithms",
@@ -51,7 +52,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
     },
     {
       'title': "Improve Health",
-      'color': Colors.purple,
+      'color': const Color(AppColors.accentPurple),
       'submissions': [
         MissionSubmission(
           title: "Meal prep log",
@@ -82,12 +83,20 @@ class _MissionsListPageState extends State<MissionsListPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Mission'),
+          backgroundColor: const Color(AppColors.surface),
+          title: const Text(
+            'Add Mission',
+            style: TextStyle(color: Color(AppColors.textMain)),
+          ),
           content: TextField(
             controller: controller,
             autofocus: true,
             textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(hintText: 'Mission title'),
+            style: const TextStyle(color: Color(AppColors.textMain)),
+            decoration: const InputDecoration(
+              hintText: 'Mission title',
+              hintStyle: TextStyle(color: Color(AppColors.textMuted)),
+            ),
             onSubmitted: (_) => Navigator.of(context).pop(controller.text),
           ),
           actions: [
@@ -112,7 +121,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
     setState(() {
       _missions.add({
         'title': title,
-        'color': Colors.teal,
+        'color': const Color(AppColors.tagCyan),
         'submissions': <MissionSubmission>[],
       });
     });
@@ -122,7 +131,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D241D),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
       ),
 
@@ -135,7 +144,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
               Text(
                 'My Values:',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Color(AppColors.textMain),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -144,7 +153,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
                 '\"Be a good person\"',
                 style: TextStyle(
                   fontSize: 18,
-                  color: Colors.white,
+                  color: Color(AppColors.textMain),
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -160,12 +169,12 @@ class _MissionsListPageState extends State<MissionsListPage> {
       height: 550,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 35, 78, 56),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             blurRadius: 8,
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.2),
             offset: const Offset(0, 2),
           ),
         ],
@@ -180,13 +189,13 @@ class _MissionsListPageState extends State<MissionsListPage> {
                   'My Missions',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Color(AppColors.textMain),
                     fontSize: 25,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(Icons.add, color: Color(AppColors.textMain)),
                   onPressed: () {
                     _showAddMissionDialog();
                   },
@@ -194,7 +203,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
               ],
             ),
           ),
-          const Divider(height: 1, color: Colors.white24),
+          const Divider(height: 1, color: Color(AppColors.surfaceBase)),
           Expanded(
             child: Scrollbar(
               child: ListView.separated(
@@ -225,7 +234,7 @@ class _MissionsListPageState extends State<MissionsListPage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white10,
+                          color: const Color(AppColors.surfaceBase),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: ListTile(
@@ -237,13 +246,13 @@ class _MissionsListPageState extends State<MissionsListPage> {
                           title: Text(
                             t['title'] as String,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(AppColors.textMain),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           trailing: const Icon(
                             Icons.chevron_right,
-                            color: Colors.white70,
+                            color: Color(AppColors.textMuted),
                           ),
                         ),
                       ),
@@ -261,12 +270,12 @@ class _MissionsListPageState extends State<MissionsListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07160F),
+      backgroundColor: const Color(AppColors.background),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          color: const Color(0xFF06D66E),
-          backgroundColor: const Color(0xFF04150C),
+          color: const Color(AppColors.primary),
+          backgroundColor: const Color(AppColors.background),
           onRefresh: _loadUserInfo,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),

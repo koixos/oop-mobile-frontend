@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sptm/core/constants.dart';
 
 // TODO Implement mission detail funcstionalities:
 //  must lead to task page of that submission
@@ -23,17 +24,20 @@ class MissionDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07160F),
+      backgroundColor: const Color(AppColors.background),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D241D),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(missionTitle, style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(AppColors.surface),
+        iconTheme: const IconThemeData(color: Color(AppColors.textMain)),
+        title: Text(
+          missionTitle,
+          style: const TextStyle(color: Color(AppColors.textMain)),
+        ),
       ),
       body: submissions.isEmpty
           ? const Center(
               child: Text(
                 'No sub-missions yet.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Color(AppColors.textMuted)),
               ),
             )
           : ListView.separated(
@@ -44,24 +48,24 @@ class MissionDetailPage extends StatelessWidget {
                 final submission = submissions[index];
                 return Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0D241D),
+                    color: const Color(AppColors.surface),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
                     title: Text(
                       submission.title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(AppColors.textMain),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     subtitle: Text(
                       submission.subtitle,
-                      style: const TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: Color(AppColors.textMuted)),
                     ),
                     trailing: const Icon(
                       Icons.keyboard_arrow_right,
-                      color: Colors.white70,
+                      color: Color(AppColors.textMuted),
                     ),
                   ),
                 );

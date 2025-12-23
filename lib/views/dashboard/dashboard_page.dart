@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
 import 'package:sptm/views/notifications/notifications_page.dart';
 import 'package:sptm/views/settings/settings_page.dart';
@@ -141,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage>
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0C1F15),
+      backgroundColor: const Color(AppColors.surface),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -164,14 +165,17 @@ class _DashboardPageState extends State<DashboardPage>
                       const Text(
                         "Quick Capture",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Color(AppColors.textMain),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: const Icon(
+                          Icons.close,
+                          color: Color(AppColors.textMuted),
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -182,21 +186,26 @@ class _DashboardPageState extends State<DashboardPage>
                     focusNode: _quickTaskFocusNode,
                     showCursor: true,
                     cursorColor: _isListening
-                        ? const Color(0xFF06D66E)
-                        : Colors.white70,
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                        ? const Color(AppColors.primary)
+                        : const Color(AppColors.textMuted),
+                    style: const TextStyle(
+                      color: Color(AppColors.textMain),
+                      fontSize: 18,
+                    ),
                     decoration: InputDecoration(
                       hintText: "Task name",
-                      hintStyle: const TextStyle(color: Colors.white38),
+                      hintStyle: const TextStyle(
+                        color: Color(AppColors.textMuted),
+                      ),
                       filled: true,
-                      fillColor: const Color(0xFF0B2518),
+                      fillColor: const Color(AppColors.surfaceBase),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
                       ),
                       prefixIcon: const Icon(
                         Icons.keyboard,
-                        color: Colors.white54,
+                        color: Color(AppColors.textMuted),
                       ),
                       suffixIcon: SizedBox(
                         width: 64,
@@ -212,7 +221,7 @@ class _DashboardPageState extends State<DashboardPage>
                                   height: 8,
                                   margin: const EdgeInsets.only(right: 4),
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF06D66E),
+                                    color: Color(AppColors.primary),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -221,8 +230,8 @@ class _DashboardPageState extends State<DashboardPage>
                               icon: Icon(
                                 _isListening ? Icons.mic : Icons.mic_none,
                                 color: _isListening
-                                    ? const Color(0xFF06D66E)
-                                    : Colors.white54,
+                                    ? const Color(AppColors.primary)
+                                    : const Color(AppColors.textMuted),
                               ),
                               onPressed: () => _toggleListening(setModalState),
                             ),
@@ -234,18 +243,21 @@ class _DashboardPageState extends State<DashboardPage>
                   const SizedBox(height: 8),
                   const Text(
                     "Type or use the mic to capture quickly.",
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                      color: Color(AppColors.textMuted),
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     value: selectedMission,
                     hint: const Text(
                       "Optional mission",
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Color(AppColors.textMuted)),
                     ),
-                    dropdownColor: const Color(0xFF0C1F15),
-                    iconEnabledColor: Colors.white70,
-                    style: const TextStyle(color: Colors.white),
+                    dropdownColor: const Color(AppColors.surface),
+                    iconEnabledColor: const Color(AppColors.textMuted),
+                    style: const TextStyle(color: Color(AppColors.textMain)),
                     items: _quickCaptureMissions
                         .map(
                           (mission) => DropdownMenuItem(
@@ -261,7 +273,7 @@ class _DashboardPageState extends State<DashboardPage>
                     },
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF0B2518),
+                      fillColor: const Color(AppColors.surfaceBase),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
@@ -273,8 +285,8 @@ class _DashboardPageState extends State<DashboardPage>
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF06D66E),
-                        foregroundColor: const Color(0xFF07160F),
+                        backgroundColor: const Color(AppColors.primary),
+                        foregroundColor: const Color(AppColors.textInverted),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -337,24 +349,27 @@ class _DashboardPageState extends State<DashboardPage>
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: Color(0xFF07160F),
+      backgroundColor: const Color(AppColors.background),
       elevation: 0,
       leadingWidth: 56,
       leading: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: CircleAvatar(
-          backgroundColor: const Color(0xFF0B3B26),
+          backgroundColor: const Color(AppColors.surfaceBase),
           backgroundImage: profileImagePath != null
               ? FileImage(File(profileImagePath!))
               : null,
           child: profileImagePath == null
-              ? const Icon(Icons.person, color: Colors.white)
+              ? const Icon(Icons.person, color: Color(AppColors.textMain))
               : null,
         ),
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.notifications, color: Colors.white),
+          icon: const Icon(
+            Icons.notifications,
+            color: Color(AppColors.textMain),
+          ),
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -364,7 +379,7 @@ class _DashboardPageState extends State<DashboardPage>
           },
         ),
         IconButton(
-          icon: Icon(Icons.settings, color: Colors.white),
+          icon: const Icon(Icons.settings, color: Color(AppColors.textMain)),
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const SettingsPage()),
@@ -382,7 +397,7 @@ class _DashboardPageState extends State<DashboardPage>
           child: Text(
             '$greeting, $firstName',
             style: const TextStyle(
-              color: Colors.white,
+              color: Color(AppColors.textMain),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -391,7 +406,10 @@ class _DashboardPageState extends State<DashboardPage>
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.inbox_outlined, color: Colors.white),
+          icon: const Icon(
+            Icons.inbox_outlined,
+            color: Color(AppColors.textMain),
+          ),
           onPressed: _openQuickCaptureSheet,
           tooltip: "Quick capture",
         ),
@@ -419,7 +437,7 @@ class _DashboardPageState extends State<DashboardPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D241D),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -431,7 +449,7 @@ class _DashboardPageState extends State<DashboardPage>
               Text(
                 'Priority Matrix',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Color(AppColors.textMain),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -439,7 +457,10 @@ class _DashboardPageState extends State<DashboardPage>
               SizedBox(height: 6),
               Text(
                 'Urgent & important tasks',
-                style: TextStyle(fontSize: 18, color: Color(0xFF37BF6C)),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Color(AppColors.textMuted),
+                ),
               ),
             ],
           ),
@@ -451,11 +472,14 @@ class _DashboardPageState extends State<DashboardPage>
                     '3',
                     style: TextStyle(
                       fontSize: 20,
-                      color: Color(0xFF06D66E),
+                      color: Color(AppColors.primary),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text('Do', style: TextStyle(color: Color(0xFF37BF6C))),
+                  Text(
+                    'Do',
+                    style: TextStyle(color: Color(AppColors.textMuted)),
+                  ),
                 ],
               ),
               const SizedBox(width: 12),
@@ -465,15 +489,18 @@ class _DashboardPageState extends State<DashboardPage>
                     '5',
                     style: TextStyle(
                       fontSize: 20,
-                      color: Color(0xFF06D66E),
+                      color: Color(AppColors.primary),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text('Schedule', style: TextStyle(color: Color(0xFF37BF6C))),
+                  Text(
+                    'Schedule',
+                    style: TextStyle(color: Color(AppColors.textMuted)),
+                  ),
                 ],
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right, color: Colors.white),
+              const Icon(Icons.chevron_right, color: Color(AppColors.textMain)),
             ],
           ),
         ],
@@ -491,12 +518,12 @@ class _DashboardPageState extends State<DashboardPage>
         SizedBox(width: 18),
         Text(
           'This Week',
-          style: TextStyle(fontSize: 16, color: Color(0xFF37BF6C)),
+          style: TextStyle(fontSize: 16, color: Color(AppColors.textMuted)),
         ),
         SizedBox(width: 18),
         Text(
           'Upcoming',
-          style: TextStyle(fontSize: 16, color: Color(0xFF37BF6C)),
+          style: TextStyle(fontSize: 16, color: Color(AppColors.textMuted)),
         ),
       ],
     );
@@ -507,38 +534,38 @@ class _DashboardPageState extends State<DashboardPage>
       {
         'title': "Finalize project proposal",
         'subtitle': "Launch Side Project",
-        'color': Colors.red,
+        'color': const Color(AppColors.danger),
       },
       {
         'title': "Finalize project proposal",
         'subtitle': "Launch Side Project",
         'done': true,
-        'color': Colors.orange,
+        'color': const Color(AppColors.warning),
       },
       {
         'title': "Finalize project proposal",
         'subtitle': "Launch Side Project",
-        'color': Colors.blue,
+        'color': const Color(AppColors.secondaryIndigoLight),
       },
       {
         'title': "Finalize project proposal1",
         'subtitle': "Launch Side Project",
-        'color': Colors.orange,
+        'color': const Color(AppColors.warning),
       },
       {
         'title': "Finalize project proposal2",
         'subtitle': "Launch Side Project",
-        'color': Colors.orange,
+        'color': const Color(AppColors.warning),
       },
       {
         'title': "Finalize project proposal3",
         'subtitle': "Launch Side Project",
-        'color': Colors.orange,
+        'color': const Color(AppColors.warning),
       },
       {
         'title': "Finalize project proposal4",
         'subtitle': "Launch Side Project",
-        'color': Colors.orange,
+        'color': const Color(AppColors.warning),
       },
     ];
 
@@ -561,12 +588,12 @@ class _DashboardPageState extends State<DashboardPage>
       height: 300,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 35, 78, 56),
+        color: const Color(AppColors.surface),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             blurRadius: 8,
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.2),
             offset: const Offset(0, 2),
           ),
         ],
@@ -581,13 +608,13 @@ class _DashboardPageState extends State<DashboardPage>
                   urgency_importance,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Color(AppColors.textMain),
                     fontSize: 15,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(Icons.add, color: Color(AppColors.textMain)),
                   onPressed: () {
                     // TODO: add action
                   },
@@ -595,7 +622,7 @@ class _DashboardPageState extends State<DashboardPage>
               ],
             ),
           ),
-          const Divider(height: 1, color: Colors.white24),
+          const Divider(height: 1, color: Color(AppColors.surfaceBase)),
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -620,13 +647,13 @@ class _DashboardPageState extends State<DashboardPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07160F),
+      backgroundColor: const Color(AppColors.background),
       appBar: _buildAppBar(),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          color: const Color(0xFF06D66E),
-          backgroundColor: const Color(0xFF04150C),
+          color: const Color(AppColors.primary),
+          backgroundColor: const Color(AppColors.background),
           onRefresh: _loadUserInfo,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sptm/core/constants.dart';
 import 'package:sptm/services/notification_service.dart';
 
 // TODO if there are quick-add tasks not assigned, show a notification about that
@@ -18,9 +19,9 @@ class NotificationsPage extends StatefulWidget {
 class _NotificationsPageState extends State<NotificationsPage>
     with SingleTickerProviderStateMixin {
   static const String _inboxKey = "quick_capture_inbox_tasks";
-  final Color bg = const Color(0xFF04150C);
-  final Color cardColor = const Color(0xFF0C1F15);
-  final Color green = const Color(0xFF06D66E);
+  final Color bg = const Color(AppColors.background);
+  final Color cardColor = const Color(AppColors.surface);
+  final Color green = const Color(AppColors.primary);
   late TabController tabController;
   late NotificationService service;
   List<NotificationItem> items = [];
@@ -39,19 +40,22 @@ class _NotificationsPageState extends State<NotificationsPage>
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: const Icon(Icons.arrow_back, color: Color(AppColors.textMain)),
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text(
         "Notifications",
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: Color(AppColors.textMain),
+          fontWeight: FontWeight.bold,
+        ),
       ),
       actions: [
         TextButton(
           onPressed: _markAllRead,
           child: const Text(
             "Mark all read",
-            style: TextStyle(color: Color(0xFF06D66E)),
+            style: TextStyle(color: Color(AppColors.primary)),
           ),
         ),
         const SizedBox(width: 6),
@@ -97,13 +101,13 @@ class _NotificationsPageState extends State<NotificationsPage>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF0C1F15),
+          color: const Color(AppColors.surface),
           borderRadius: BorderRadius.circular(14),
         ),
         child: TabBar(
           controller: tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white38,
+          labelColor: const Color(AppColors.textMain),
+          unselectedLabelColor: const Color(AppColors.textMuted),
           indicator: BoxDecoration(
             color: green.withOpacity(0.2),
             borderRadius: BorderRadius.circular(14),
@@ -124,7 +128,7 @@ class _NotificationsPageState extends State<NotificationsPage>
       child: Text(
         text,
         style: const TextStyle(
-          color: Colors.white54,
+          color: Color(AppColors.textMuted),
           letterSpacing: 1,
           fontSize: 13,
           fontWeight: FontWeight.w500,
@@ -163,7 +167,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                       child: Text(
                         title,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color(AppColors.textMain),
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -171,7 +175,10 @@ class _NotificationsPageState extends State<NotificationsPage>
                     ),
                     Text(
                       time,
-                      style: const TextStyle(color: Colors.green, fontSize: 12),
+                      style: const TextStyle(
+                        color: Color(AppColors.success),
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -179,7 +186,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                 Text(
                   message,
                   style: const TextStyle(
-                    color: Colors.white60,
+                    color: Color(AppColors.textMuted),
                     height: 1.4,
                     fontSize: 14,
                   ),
@@ -215,7 +222,7 @@ class _NotificationsPageState extends State<NotificationsPage>
             width: 8,
             height: 8,
             decoration: const BoxDecoration(
-              color: Color(0xFF06D66E),
+              color: Color(AppColors.primary),
               shape: BoxShape.circle,
             ),
           ),
@@ -234,7 +241,7 @@ class _NotificationsPageState extends State<NotificationsPage>
       child: Text(
         label,
         style: const TextStyle(
-          color: Color(0xFF06D66E),
+          color: Color(AppColors.primary),
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
@@ -247,7 +254,7 @@ class _NotificationsPageState extends State<NotificationsPage>
     required String message,
     required String time,
     IconData icon = Icons.check,
-    Color iconColor = Colors.grey,
+    Color iconColor = const Color(AppColors.textMuted),
     bool done = false,
   }) {
     return Dismissible(
@@ -277,7 +284,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                           child: Text(
                             title,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: const Color(AppColors.textMain),
                               fontSize: 15,
                               decoration: done
                                   ? TextDecoration.lineThrough
@@ -288,7 +295,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                         Text(
                           time,
                           style: const TextStyle(
-                            color: Colors.white38,
+                            color: Color(AppColors.textMuted),
                             fontSize: 12,
                           ),
                         ),
@@ -298,7 +305,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                     Text(
                       message,
                       style: const TextStyle(
-                        color: Colors.white54,
+                        color: Color(AppColors.textMuted),
                         fontSize: 13,
                         height: 1.3,
                       ),
@@ -317,13 +324,13 @@ class _NotificationsPageState extends State<NotificationsPage>
     return Container(
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.only(left: 20),
-      color: const Color(0xFF444A59),
+      color: const Color(AppColors.surfaceBase),
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.archive, color: Colors.white),
+          Icon(Icons.archive, color: Color(AppColors.textMain)),
           SizedBox(height: 4),
-          Text("Archive", style: TextStyle(color: Colors.white)),
+          Text("Archive", style: TextStyle(color: Color(AppColors.textMain))),
         ],
       ),
     );
@@ -333,13 +340,13 @@ class _NotificationsPageState extends State<NotificationsPage>
     return Container(
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 20),
-      color: Colors.red,
+      color: const Color(AppColors.danger),
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.delete, color: Colors.white),
+          Icon(Icons.delete, color: Color(AppColors.textMain)),
           SizedBox(height: 4),
-          Text("Delete", style: TextStyle(color: Colors.white)),
+          Text("Delete", style: TextStyle(color: Color(AppColors.textMain))),
         ],
       ),
     );
@@ -362,7 +369,7 @@ class _NotificationsPageState extends State<NotificationsPage>
           ),
           _buildNotificationCardNew(
             icon: Icons.flag,
-            iconColor: Colors.deepPurpleAccent,
+            iconColor: const Color(AppColors.accentPurple),
             title: "Quarterly Mission Statement Review",
             message: "Your scheduled review starts in 10 minutes.",
             time: "1h ago",
@@ -387,7 +394,7 @@ class _NotificationsPageState extends State<NotificationsPage>
             message: "Ready to look back at your week?",
             time: "2 days ago",
             icon: Icons.assignment_turned_in,
-            iconColor: Colors.blueAccent,
+            iconColor: const Color(AppColors.secondaryIndigoLight),
           ),
         ],
       ),
@@ -399,7 +406,7 @@ class _NotificationsPageState extends State<NotificationsPage>
       return const Center(
         child: Text(
           "No inbox tasks yet.",
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: Color(AppColors.textMuted)),
         ),
       );
     }
@@ -437,7 +444,7 @@ class _NotificationsPageState extends State<NotificationsPage>
           children: [
             const SizedBox(height: 8),
             _buildTabs(),
-            const Divider(color: Colors.white12, thickness: 1),
+            const Divider(color: Color(AppColors.surfaceBase), thickness: 1),
             Expanded(
               child: TabBarView(
                 controller: tabController,

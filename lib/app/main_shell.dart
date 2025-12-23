@@ -4,6 +4,7 @@ import 'package:sptm/views/calendar/calendar_page.dart';
 import 'package:sptm/views/dashboard/dashboard_page.dart';
 import 'package:sptm/views/insights/insights_page.dart';
 import 'package:sptm/views/missions/missions_list_page.dart';
+import 'package:sptm/core/constants.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -32,10 +33,17 @@ class _MainShellState extends State<MainShell> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: isActive ? const Color(0x3306D66E) : Colors.transparent,
+          color: isActive
+              ? const Color(AppColors.primary).withOpacity(0.2)
+              : Colors.transparent,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: isActive ? Colors.white : Colors.white54),
+        child: Icon(
+          icon,
+          color: isActive
+              ? const Color(AppColors.textMain)
+              : const Color(AppColors.textMuted),
+        ),
       ),
     );
   }
@@ -43,7 +51,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF04150C),
+      backgroundColor: const Color(AppColors.background),
       body: IndexedStack(index: index, children: pages),
       // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       // floatingActionButton: FloatingActionButton(
@@ -60,7 +68,7 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: SafeArea(
         top: false,
         child: BottomAppBar(
-          color: const Color(0xFF04150C),
+          color: const Color(AppColors.surface),
           shape: const CircularNotchedRectangle(),
           notchMargin: 6,
           elevation: 10,
