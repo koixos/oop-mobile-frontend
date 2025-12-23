@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/core/constants.dart';
-import 'package:sptm/views/missions/mission_detail_page.dart';
+import 'package:sptm/views/missions/sub_mission_detail_page.dart';
 
 class MissionsListPage extends StatefulWidget {
   const MissionsListPage({super.key});
@@ -292,6 +292,15 @@ class _MissionsListPageState extends State<MissionsListPage> {
                                 color: Color(AppColors.textMuted),
                               ),
                             ),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => SubMissionDetailPage(
+                                    subMissionTitle: submission.title,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
