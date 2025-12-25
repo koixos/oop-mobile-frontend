@@ -22,7 +22,7 @@ class _DashboardPageState extends State<DashboardPage>
     with SingleTickerProviderStateMixin {
   static const String _inboxKey = "quick_capture_inbox_tasks";
   static const String _tasksKey = "dashboard_tasks";
-  String greeting = "";
+  String todaysDate = "";
   String firstName = "";
   String? profileImagePath;
   final TextEditingController _quickTaskController = TextEditingController();
@@ -72,12 +72,14 @@ class _DashboardPageState extends State<DashboardPage>
     super.dispose();
   }
 
-  String _getGreetingBasedOnTime() {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return "Good Morning";
-    if (hour >= 12 && hour < 17) return "Good Afternoon";
-    if (hour >= 17 && hour < 22) return "Good Evening";
-    return "Good Night";
+  String _weekday(int day) {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    return days[day - 1];
+  }
+
+  String _getTodaysDate() {
+    final now = DateTime.now();
+    return "${_weekday(now.weekday)}, ${_formatDate(now)}";
   }
 
   Future<void> _loadUserInfo() async {
@@ -89,7 +91,7 @@ class _DashboardPageState extends State<DashboardPage>
       firstName = fullName.isNotEmpty ? fullName.split(" ").first : "";
 
       profileImagePath = img;
-      greeting = _getGreetingBasedOnTime();
+      todaysDate = _getTodaysDate();
     });
   }
 
@@ -885,15 +887,19 @@ class _DashboardPageState extends State<DashboardPage>
     return Row(
       children: [
         Expanded(
-          child: Text(
-            '$greeting, $firstName',
-            style: const TextStyle(
-              color: Color(AppColors.textMain),
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
+            child: Text(
+              '$todaysDate',
+              style: const TextStyle(
+                color: Color(AppColors.textMain),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
           ),
         ),
         IconButton(
@@ -1150,12 +1156,6 @@ class _DashboardPageState extends State<DashboardPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(),
-                  // const SizedBox(height: 16),
-                  // _buildActiveGoals(),
-                  // const SizedBox(height: 16),
-                  // _buildPriorityMatrix(context),
-                  // const SizedBox(height: 18),
-                  // _buildTabs(),
                   const SizedBox(height: 16),
                   _buildTaskList(
                     "Urgent, Important",
