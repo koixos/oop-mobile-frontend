@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sptm/core/constants.dart';
+import 'package:sptm/services/api_client.dart';
+import 'package:sptm/services/auth_storage.dart';
 
 class AuthException implements Exception {
   final String message;
@@ -11,16 +10,18 @@ class AuthException implements Exception {
 }
 
 class AuthService {
-  final http.Client _client;
+  final ApiClient _apiClient;
+  final AuthStorage _authStorage;
 
-  AuthService({http.Client? client}) : _client = client ?? http.Client();
+  AuthService({ApiClient? apiClient, AuthStorage? authStorage})
+    : _apiClient = apiClient ?? ApiClient(),
+      _authStorage = authStorage ?? AuthStorage();
 
   Future<void> register(String name, String email, String passwd) async {
-    final uri = Uri.parse("${AppStrings.apiBaseURL}/auth/register");
-    final response = await _client.post(
-      uri,
-      headers: const {"Content-Type": "application/json"},
-      body: jsonEncode({"username": name, "email": email, "password": passwd}),
+    final response = await _apiClient.post(
+      'auth/register',
+      requiresAuth: false,
+      body: {"username": name, "email": email, "password": passwd},
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -37,22 +38,14 @@ class AuthService {
     throw AuthException(message);
   }
 
-  Future<void> login(String emailOrPhone, String passwd) async {
-    final uri = Uri.parse('${AppStrings.apiBaseURL}/auth/login');
-    final loginValue = emailOrPhone.trim();
-    final payload = <String, String>{"password": passwd};
+  Future<void> login(String email, String passwd) async {
+    final loginValue = email.trim();
+    final payload = <String, String>{"email": loginValue, "password": passwd};
 
-    if (loginValue.contains("@")) {
-      payload["email"] = loginValue;
-    } else if (RegExp(r"^\+?\d+$").hasMatch(loginValue)) {
-    } else {
-      payload["username"] = loginValue;
-    }
-
-    final response = await _client.post(
-      uri,
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode(payload),
+    final response = await _apiClient.post(
+      'auth/login',
+      requiresAuth: false,
+      body: payload,
     );
 
     if (response.statusCode == 200) {
@@ -62,16 +55,7 @@ class AuthService {
         throw const AuthException('Invalid response from server.');
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-      await prefs.setBool('loggedIn', true);
-      if (body['id'] is int) await prefs.setInt('user_id', body['id'] as int);
-      if (body['username'] is String) {
-        await prefs.setString('username', body['username'] as String);
-      }
-      if (body['email'] is String) {
-        await prefs.setString('email', body['email'] as String);
-      }
+      await _authStorage.saveToken(token);
       return;
     }
 
@@ -86,8 +70,7 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await _authStorage.clearToken();
   }
 
   Future<bool> requestPasswdReset(String email) async {
