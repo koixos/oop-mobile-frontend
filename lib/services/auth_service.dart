@@ -1,41 +1,88 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sptm/core/constants.dart';
+
+class AuthException implements Exception {
+  final String message;
+
+  const AuthException(this.message);
+}
 
 class AuthService {
-  Future<bool> register(
-    String name,
-    String phone,
-    String email,
-    String passwd,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final emailRegex = RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+  final http.Client _client;
 
-    if (name.isEmpty || phone.isEmpty || email.isEmpty || passwd.isEmpty) {
-      return false;
+  AuthService({http.Client? client}) : _client = client ?? http.Client();
+
+  Future<void> register(String name, String email, String passwd) async {
+    final uri = Uri.parse("${AppStrings.apiBaseURL}/auth/register");
+    final response = await _client.post(
+      uri,
+      headers: const {"Content-Type": "application/json"},
+      body: jsonEncode({"username": name, "email": email, "password": passwd}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return;
     }
 
-    if (!emailRegex.hasMatch(email)) return false;
+    if (response.statusCode == 403) {
+      throw const AuthException("Registration forbidden.");
+    }
 
-    prefs.setString('name', name);
-    prefs.setString('phone', phone);
-    prefs.setString('email', email);
-    prefs.setString('passwd', passwd);
-    prefs.setString('img', "");
-
-    return true;
+    final message = response.body.isNotEmpty
+        ? response.body
+        : "Registration failed. (${response.statusCode})";
+    throw AuthException(message);
   }
 
-  Future<bool> login(String emailOrPhone, String passwd) async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> login(String emailOrPhone, String passwd) async {
+    final uri = Uri.parse('${AppStrings.apiBaseURL}/auth/login');
+    final loginValue = emailOrPhone.trim();
+    final payload = <String, String>{"password": passwd};
 
-    if (emailOrPhone.isEmpty || passwd.isEmpty) return false;
+    if (loginValue.contains("@")) {
+      payload["email"] = loginValue;
+    } else if (RegExp(r"^\+?\d+$").hasMatch(loginValue)) {
+    } else {
+      payload["username"] = loginValue;
+    }
 
-    final savedEmail = prefs.getString('email');
-    final savedPhone = prefs.getString('phone');
-    final savedPasswd = prefs.getString('passwd');
+    final response = await _client.post(
+      uri,
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
 
-    return ((emailOrPhone == savedEmail || emailOrPhone == savedPhone) &&
-        passwd == savedPasswd);
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final token = body['token'] as String?;
+      if (token == null) {
+        throw const AuthException('Invalid response from server.');
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+      await prefs.setBool('loggedIn', true);
+      if (body['id'] is int) await prefs.setInt('user_id', body['id'] as int);
+      if (body['username'] is String) {
+        await prefs.setString('username', body['username'] as String);
+      }
+      if (body['email'] is String) {
+        await prefs.setString('email', body['email'] as String);
+      }
+      return;
+    }
+
+    if (response.statusCode == 403) {
+      throw const AuthException('Invalid credentials.');
+    }
+
+    final message = response.body.isNotEmpty
+        ? response.body
+        : "Login failed. (${response.statusCode})";
+    throw AuthException(message);
   }
 
   Future<void> logout() async {

@@ -17,7 +17,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final authService = AuthService();
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
-  final phoneCtrl = TextEditingController();
   final passwdCtrl = TextEditingController();
   bool loading = false;
   bool obscure = true;
@@ -28,19 +27,17 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => loading = true);
 
     try {
-      final success = await authService.register(
-        nameCtrl.text,
-        phoneCtrl.text.trim(),
+      await authService.register(
+        nameCtrl.text.trim(),
         emailCtrl.text.trim(),
-        passwdCtrl.text,
+        passwdCtrl.text.trim(),
       );
-
-      if (success) {
-        Fluttertoast.showToast(msg: "Registration successful!");
-        Navigator.pop(context);
-      } else {
-        Fluttertoast.showToast(msg: "Registration failed");
-      }
+      Fluttertoast.showToast(msg: "Registration successful!");
+      Navigator.pop(context);
+    } on AuthException catch (e) {
+      Fluttertoast.showToast(msg: e.message);
+    } catch (_) {
+      Fluttertoast.showToast(msg: "Registration failed. Please try again.");
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -114,7 +111,6 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     nameCtrl.dispose();
-    phoneCtrl.dispose();
     emailCtrl.dispose();
     passwdCtrl.dispose();
     super.dispose();
@@ -166,10 +162,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 34),
-                _buildLabel("Full Name"),
+                _buildLabel("Username"),
                 _buildInputField(
                   controller: nameCtrl,
-                  hint: "Enter your full name",
+                  hint: "Enter your username",
                   icon: Icons.person_outline,
                   validator: Validators.validateName,
                 ),
@@ -180,14 +176,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   hint: "Enter your email",
                   icon: Icons.email_outlined,
                   validator: Validators.validateEmail,
-                ),
-                const SizedBox(height: 20),
-                _buildLabel("Phone Number"),
-                _buildInputField(
-                  controller: phoneCtrl,
-                  hint: "Enter your phone number",
-                  icon: Icons.phone_android,
-                  validator: Validators.validatePhone,
                 ),
                 const SizedBox(height: 20),
                 _buildLabel("Password"),
