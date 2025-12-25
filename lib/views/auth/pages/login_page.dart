@@ -3,7 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/app/main_shell.dart';
 import 'package:sptm/core/constants.dart';
-import 'package:sptm/core/validators.dart';
+// import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
 import 'package:sptm/views/auth/dialogs/forgot_passwd_dialog.dart';
 import 'register_page.dart';
@@ -62,7 +62,6 @@ class _LoginPageState extends State<LoginPage> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
-    required String? Function(String?) validator,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -72,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: TextFormField(
         controller: controller,
-        validator: validator,
         style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
           icon: Icon(icon, color: const Color(AppColors.textMuted)),
@@ -208,7 +206,6 @@ class _LoginPageState extends State<LoginPage> {
                   controller: emailCtrl,
                   hint: "Enter your email",
                   icon: Icons.email_outlined,
-                  validator: Validators.validateEmailOrPhone,
                 ),
                 const SizedBox(height: 22),
                 const Text(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sptm/core/constants.dart';
-import 'package:sptm/core/validators.dart';
+// import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
 import 'package:sptm/views/auth/pages/login_page.dart';
 
@@ -54,7 +54,6 @@ class _RegisterPageState extends State<RegisterPage> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
-    required String? Function(String?) validator,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -64,7 +63,6 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       child: TextFormField(
         controller: controller,
-        validator: validator,
         style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
           icon: Icon(icon, color: const Color(AppColors.textMuted)),
@@ -86,7 +84,6 @@ class _RegisterPageState extends State<RegisterPage> {
       child: TextFormField(
         controller: passwdCtrl,
         obscureText: obscure,
-        validator: Validators.validatePasswd,
         style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
           icon: const Icon(
@@ -165,9 +162,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 _buildLabel("Username"),
                 _buildInputField(
                   controller: nameCtrl,
-                  hint: "Enter your username",
+                  hint: "Create a username",
                   icon: Icons.person_outline,
-                  validator: Validators.validateName,
                 ),
                 const SizedBox(height: 20),
                 _buildLabel("Email"),
@@ -175,7 +171,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: emailCtrl,
                   hint: "Enter your email",
                   icon: Icons.email_outlined,
-                  validator: Validators.validateEmail,
                 ),
                 const SizedBox(height: 20),
                 _buildLabel("Password"),
