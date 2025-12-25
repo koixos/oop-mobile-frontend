@@ -1,5 +1,6 @@
 class AppStrings {
   static const appName = "Smart Personal Task Manager";
+  static const apiBaseURL = "http://localhost:8080/api";
 }
 
 class AppColors {

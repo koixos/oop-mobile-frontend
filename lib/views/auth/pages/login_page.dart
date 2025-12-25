@@ -3,7 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/app/main_shell.dart';
 import 'package:sptm/core/constants.dart';
-import 'package:sptm/core/validators.dart';
+// import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
 import 'package:sptm/views/auth/dialogs/forgot_passwd_dialog.dart';
 import 'register_page.dart';
@@ -18,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final formKey = GlobalKey<FormState>();
   final authService = AuthService();
-  final emailOrPhoneCtrl = TextEditingController();
+  final emailCtrl = TextEditingController();
   final passwdCtrl = TextEditingController();
   bool loading = false;
   bool obscure = true;
@@ -36,22 +36,18 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => loading = true);
 
     try {
-      final success = await authService.login(
-        emailOrPhoneCtrl.text.trim(),
-        passwdCtrl.text,
+      await authService.login(emailCtrl.text.trim(), passwdCtrl.text);
+      await saveLoginState(true);
+      Fluttertoast.showToast(msg: "Login successful!");
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainShell()),
+        (route) => false,
       );
-
-      if (success) {
-        await saveLoginState(success);
-        Fluttertoast.showToast(msg: "Login successful!");
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const MainShell()),
-          (route) => false,
-        );
-      } else {
-        Fluttertoast.showToast(msg: "Invalid credentials");
-      }
+    } on AuthException catch (e) {
+      Fluttertoast.showToast(msg: e.message);
+    } catch (_) {
+      Fluttertoast.showToast(msg: "Login failed. Please try again.");
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -66,7 +62,6 @@ class _LoginPageState extends State<LoginPage> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
-    required String? Function(String?) validator,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -76,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: TextFormField(
         controller: controller,
-        validator: validator,
         style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
           icon: Icon(icon, color: const Color(AppColors.textMuted)),
@@ -98,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
       child: TextFormField(
         controller: passwdCtrl,
         obscureText: obscure,
-        validator: Validators.validatePasswd,
+        // validator: Validators.validatePasswd,
         style: const TextStyle(color: Color(AppColors.textMain)),
         decoration: InputDecoration(
           icon: const Icon(
@@ -148,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    emailOrPhoneCtrl.dispose();
+    emailCtrl.dispose();
     passwdCtrl.dispose();
     super.dispose();
   }
@@ -209,10 +203,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 8),
                 _buildInputField(
-                  controller: emailOrPhoneCtrl,
+                  controller: emailCtrl,
                   hint: "Enter your email",
                   icon: Icons.email_outlined,
-                  validator: Validators.validateEmailOrPhone,
                 ),
                 const SizedBox(height: 22),
                 const Text(
