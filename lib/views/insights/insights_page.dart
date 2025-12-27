@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/models/weekly_stats.dart';
+import 'package:sptm/models/task_item.dart';
 import 'package:sptm/services/analytics_service.dart';
+import 'package:sptm/services/task_service.dart';
 
 class InsightsPage extends StatefulWidget {
   const InsightsPage({super.key});
@@ -79,6 +81,7 @@ class _InsightsPageState extends State<InsightsPage> {
   bool _isLoading = true;
   WeeklyStats? _stats;
   final AnalyticsService _analyticsService = AnalyticsService();
+  final TaskService _taskService = TaskService(); // Added TaskService
 
   @override
   void initState() {
@@ -88,17 +91,73 @@ class _InsightsPageState extends State<InsightsPage> {
 
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt('user_id');
-    if (userId == null) return;
+    final userId = prefs.getInt('userId'); // Fixed key from 'user_id' to 'userId' to match ArchivePage
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      return; 
+    }
 
     try {
-      final stats = await _analyticsService.getWeeklyStats(userId);
+      // 1. Fetch data in parallel
+      final results = await Future.wait([
+        _taskService.getTasks(userId),
+        _analyticsService.getWeeklyStats(userId),
+      ]);
+
+      final allTasks = results[0] as List<TaskItem>;
+      final serverStats = results[1] as WeeklyStats;
+
+      // 2. Calculate local stats
+      // Filter for tasks completed in the last 7 days (including today)
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final weekStart = today.subtract(const Duration(days: 6));
+
+      // Activity Data (last 7 days)
+      final List<int> activityData = List.filled(7, 0);
+      
+      int completedCount = 0;
+      int totalCount = allTasks.length;
+
+      for (var task in allTasks) {
+        if (task.done && task.completedAt != null) {
+          completedCount++;
+          
+          final cDate = task.completedAt!;
+          final completedDay = DateTime(cDate.year, cDate.month, cDate.day);
+          
+          // Check if within the last 7 days window
+          if (!completedDay.isBefore(weekStart) && !completedDay.isAfter(today)) {
+             final diff = completedDay.difference(weekStart).inDays;
+             if (diff >= 0 && diff < 7) {
+               activityData[diff]++;
+             }
+          }
+        }
+      }
+
+      final double rate = totalCount > 0 
+          ? (completedCount / totalCount) * 100 
+          : 0.0;
+
+      // 3. Merge with server stats (keep mission progress from server)
+      final mergedStats = WeeklyStats(
+        totalTasks: totalCount,
+        completedTasks: completedCount,
+        completionRate: rate,
+        activityData: activityData,
+        missionProgress: serverStats.missionProgress,
+      );
+
+      if (!mounted) return;
       setState(() {
-        _stats = stats;
+        _stats = mergedStats;
         _isLoading = false;
       });
     } catch (e) {
       debugPrint("Error loading stats: $e");
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
