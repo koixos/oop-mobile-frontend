@@ -14,7 +14,12 @@ class ArchivePage extends StatefulWidget {
 }
 
 class _ArchivePageState extends State<ArchivePage> {
-  List<TaskItem> _tasks = [];
+  List<TaskItem> _allTasks = []; // Store all fetched tasks
+  List<TaskItem> _filteredTasks = []; // Store currently displayed tasks
+
+  String _selectedFilter = "All";
+  String _selectedSort = "Done Date";
+
   bool _isLoading = true;
   final TaskService _taskService = TaskService();
 
@@ -26,15 +31,23 @@ class _ArchivePageState extends State<ArchivePage> {
 
   Future<void> _loadArchivedTasks() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt('user_id');
-    if (userId == null) return;
+    final userId = prefs.getInt('userId');
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      return;
+    }
 
     try {
       final allTasks = await _taskService.getTasks(userId);
       if (!mounted) return;
+      
+      final archived = allTasks.where((t) => t.isArchived).toList();
+      
       setState(() {
-        _tasks = allTasks.where((t) => t.isArchived).toList();
+        _allTasks = archived;
         _isLoading = false;
+        _applyFilterAndSort();
       });
     } catch (e) {
       debugPrint("Error loading archived tasks: $e");
@@ -42,22 +55,139 @@ class _ArchivePageState extends State<ArchivePage> {
     }
   }
 
+  void _applyFilterAndSort() {
+    List<TaskItem> temp = List.from(_allTasks);
+
+    // Filter
+    if (_selectedFilter != "All") {
+      temp = temp.where((t) {
+        if (_selectedFilter == "Q1: Urgent & Important") {
+          return t.urgent && t.important;
+        } else if (_selectedFilter == "Q2: Not Urgent & Important") {
+          return !t.urgent && t.important;
+        } else if (_selectedFilter == "Q3: Urgent & Not Important") {
+          return t.urgent && !t.important;
+        } else if (_selectedFilter == "Q4: Not Urgent & Not Important") {
+          return !t.urgent && !t.important;
+        }
+        return true;
+      }).toList();
+    }
+
+    // Sort
+    temp.sort((a, b) {
+      if (_selectedSort == "Done Date") {
+        // Fallback to ID if completedAt is null, or sort by ID descending if both null
+        final dateA = a.completedAt ?? DateTime(2000); 
+        final dateB = b.completedAt ?? DateTime(2000);
+        return dateB.compareTo(dateA); 
+      } else if (_selectedSort == "Created Date") {
+        return b.id.compareTo(a.id); // Assuming ID correlates with creation time
+      } else if (_selectedSort == "Title") {
+        return a.title.compareTo(b.title);
+      }
+      return 0;
+    });
+
+    setState(() {
+      _filteredTasks = temp;
+    });
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(AppColors.surface),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              const Text(
+                "Sort by",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _SortOption(
+                label: "Done Date",
+                selected: _selectedSort == "Done Date",
+                onTap: () {
+                  setState(() => _selectedSort = "Done Date");
+                  _applyFilterAndSort();
+                  Navigator.pop(context);
+                },
+              ),
+              _SortOption(
+                label: "Created Date",
+                selected: _selectedSort == "Created Date",
+                onTap: () {
+                  setState(() => _selectedSort = "Created Date");
+                  _applyFilterAndSort();
+                  Navigator.pop(context);
+                },
+              ),
+              _SortOption(
+                label: "Title",
+                selected: _selectedSort == "Title",
+                onTap: () {
+                  setState(() => _selectedSort = "Title");
+                  _applyFilterAndSort();
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0B0F14),
+        backgroundColor: Color(AppColors.background),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F14),
+      backgroundColor: const Color(AppColors.background),
+      appBar: AppBar(
+        backgroundColor: const Color(AppColors.background),
+        elevation: 0,
+        centerTitle: false,
+        titleSpacing: 16,
+        title: const Text(
+          "Archive",
+          style: TextStyle(
+            color: Color(AppColors.textMain),
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: const [
+          _IconCircle(icon: Icons.light_mode_outlined),
+          SizedBox(width: 12),
+          _IconCircle(icon: Icons.search),
+          SizedBox(width: 12),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         child: RefreshIndicator(
           onRefresh: _loadArchivedTasks,
-          color: Colors.deepPurple,
-          backgroundColor: Colors.white,
+          color: const Color(AppColors.primary),
+          backgroundColor: const Color(AppColors.background),
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
@@ -67,46 +197,59 @@ class _ArchivePageState extends State<ArchivePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                       const _Header(),
-                       const SizedBox(height: 16),
-                       _TopControls(completedCount: _tasks.length),
-                       const SizedBox(height: 16),
-                       const _QuadrantFilters(),
-                       const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Review your accomplishments",
+                        style: TextStyle(color: Color(AppColors.textMuted)),
+                      ),
+                      const SizedBox(height: 16),
+                      _TopControls(
+                        completedCount: _allTasks.length,
+                        currentSort: _selectedSort,
+                        onSortTap: _showSortOptions,
+                      ),
+                      const SizedBox(height: 16),
+                      _QuadrantFilters(
+                        selectedFilter: _selectedFilter,
+                        onFilterSelected: (filter) {
+                          setState(() => _selectedFilter = filter);
+                          _applyFilterAndSort();
+                        },
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-              if (_tasks.isEmpty)
-                 const SliverFillRemaining(
-                   child: Center(
-                     child: Text(
-                       "No archived tasks",
-                       style: TextStyle(color: Colors.white54),
-                     ),
-                   ),
-                 )
+              if (_filteredTasks.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      "No archived tasks found",
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
+                )
               else
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                         final task = _tasks[index];
-                         return _TaskCard(
-                           task,
-                           onUnarchive: () async {
-                              await _taskService.updateTask(task.copyWith(isArchived: false));
-                              _loadArchivedTasks();
-                           },
-                           onDelete: () async {
-                              await _taskService.deleteTask(task.id);
-                              _loadArchivedTasks();
-                           },
-                         );
-                      },
-                      childCount: _tasks.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final task = _filteredTasks[index];
+                      return _TaskCard(
+                        task,
+                        onUnarchive: () async {
+                          await _taskService.updateTask(
+                            task.copyWith(isArchived: false),
+                          );
+                          _loadArchivedTasks();
+                        },
+                        onDelete: () async {
+                          await _taskService.deleteTask(task.id);
+                          _loadArchivedTasks();
+                        },
+                      );
+                    }, childCount: _filteredTasks.length),
                   ),
                 ),
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
@@ -118,39 +261,48 @@ class _ArchivePageState extends State<ArchivePage> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header();
+class _TopControls extends StatelessWidget {
+  final int completedCount;
+  final String currentSort;
+  final VoidCallback onSortTap;
+
+  const _TopControls({
+    required this.completedCount,
+    required this.currentSort,
+    required this.onSortTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              "Archive",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+        InkWell(
+          onTap: onSortTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF161B22),
+              borderRadius: BorderRadius.circular(12),
             ),
-            SizedBox(height: 4),
-            Text(
-              "Review your accomplishments",
-              style: TextStyle(color: Colors.white54),
+            child: Row(
+              children: [
+                const Icon(Icons.sort, color: Colors.deepPurple),
+                const SizedBox(width: 8),
+                Text(
+                  "Sort by: $currentSort",
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
+              ],
             ),
-          ],
+          ),
         ),
-        Row(
-          children: [
-            _IconCircle(icon: Icons.light_mode_outlined),
-            const SizedBox(width: 12),
-            _IconCircle(icon: Icons.search),
-          ],
-        )
+        const Spacer(),
+        Text(
+          "$completedCount Tasks Total", // Changed to Total since we might filter
+          style: const TextStyle(color: Colors.white54),
+        ),
       ],
     );
   }
@@ -163,61 +315,52 @@ class _IconCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      backgroundColor: const Color(0xFF161B22),
-      child: Icon(icon, color: Colors.white),
-    );
-  }
-}
-
-class _TopControls extends StatelessWidget {
-  final int completedCount;
-  const _TopControls({required this.completedCount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF161B22),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: const [
-              Icon(Icons.sort, color: Colors.deepPurple),
-              SizedBox(width: 8),
-              Text(
-                "Sort by: Done Date",
-                style: TextStyle(color: Colors.white70),
-              ),
-              Icon(Icons.keyboard_arrow_down, color: Colors.white54),
-            ],
-          ),
-        ),
-        const Spacer(),
-        Text(
-          "$completedCount Tasks Completed",
-          style: const TextStyle(color: Colors.white54),
-        ),
-      ],
+      backgroundColor: const Color(AppColors.surface),
+      child: Icon(icon, color: const Color(AppColors.textMain)),
     );
   }
 }
 
 class _QuadrantFilters extends StatelessWidget {
-  const _QuadrantFilters();
+  final String selectedFilter;
+  final Function(String) onFilterSelected;
+
+  const _QuadrantFilters({
+    required this.selectedFilter,
+    required this.onFilterSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: const [
-          _FilterChip(label: "All", selected: true),
-          _FilterChip(label: "Q1: Urgent & Important"),
-          _FilterChip(label: "Q2: Not Urgent & Important"),
-          _FilterChip(label: "Q3: Urgent & Not Important"),
+        children: [
+          _FilterChip(
+            label: "All",
+            selected: selectedFilter == "All",
+            onTap: () => onFilterSelected("All"),
+          ),
+          _FilterChip(
+            label: "Q1: Urgent & Important",
+            selected: selectedFilter == "Q1: Urgent & Important",
+            onTap: () => onFilterSelected("Q1: Urgent & Important"),
+          ),
+          _FilterChip(
+            label: "Q2: Not Urgent & Important",
+            selected: selectedFilter == "Q2: Not Urgent & Important",
+            onTap: () => onFilterSelected("Q2: Not Urgent & Important"),
+          ),
+          _FilterChip(
+            label: "Q3: Urgent & Not Important",
+            selected: selectedFilter == "Q3: Urgent & Not Important",
+            onTap: () => onFilterSelected("Q3: Urgent & Not Important"),
+          ),
+           _FilterChip(
+            label: "Q4: Not Urgent & Not Important",
+            selected: selectedFilter == "Q4: Not Urgent & Not Important",
+            onTap: () => onFilterSelected("Q4: Not Urgent & Not Important"),
+          ),
         ],
       ),
     );
@@ -227,20 +370,26 @@ class _QuadrantFilters extends StatelessWidget {
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
+  final VoidCallback onTap;
 
-  const _FilterChip({required this.label, this.selected = false});
+  const _FilterChip({
+    required this.label,
+    required this.onTap,
+    this.selected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: Chip(
-        backgroundColor:
-        selected ? Colors.deepPurple : const Color(0xFF161B22),
-        label: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.white : Colors.white70,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Chip(
+          backgroundColor: selected ? Colors.deepPurple : const Color(0xFF161B22),
+          label: Text(
+            label,
+            style: TextStyle(color: selected ? Colors.white : Colors.white70),
           ),
         ),
       ),
@@ -248,7 +397,35 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
+class _SortOption extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
+  const _SortOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Icon(
+        selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        color: selected ? Colors.deepPurple : Colors.white54,
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: selected ? Colors.deepPurple : Colors.white70,
+          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+}
 
 class _SectionTitle extends StatelessWidget {
   final String title;
@@ -296,14 +473,14 @@ class _TaskCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF161B22),
+          color: const Color(AppColors.surface),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
             InkWell(
-               onTap: onUnarchive,
-               child: const Icon(Icons.restore, color: Colors.deepPurple),
+              onTap: onUnarchive,
+              child: const Icon(Icons.restore, color: Colors.deepPurple),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -318,19 +495,23 @@ class _TaskCard extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                  if (task.description != null && task.description!.isNotEmpty) ...[
-                     const SizedBox(height: 6),
-                     Text(
-                        task.description!,
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                     )
-                  ]
+                  if (task.description != null &&
+                      task.description!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      task.description!,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),
-             IconButton(
+            IconButton(
               icon: const Icon(Icons.delete, color: Colors.white24, size: 20),
               onPressed: onDelete,
             ),
@@ -340,8 +521,3 @@ class _TaskCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sptm/views/archive/archive_page.dart';
 import 'package:sptm/views/calendar/calendar_page.dart';
@@ -53,25 +54,14 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       backgroundColor: const Color(AppColors.background),
       body: IndexedStack(index: index, children: pages),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: const Color(0xFF06D66E),
-      //   elevation: 8,
-      //   onPressed: () {
-      //     Navigator.push(
-      //       context,
-      //       MaterialPageRoute(builder: (_) => const CreateTaskPage()),
-      //     );
-      //   },
-      //   child: const Icon(Icons.add, size: 32, color: Colors.black),
-      // ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: BottomAppBar(
-          color: const Color(AppColors.surface),
+          color: const Color(AppColors.background),
+          surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
           shape: const CircularNotchedRectangle(),
           notchMargin: 6,
-          elevation: 10,
+          elevation: 3,
           child: SizedBox(
             height: 52,
             child: Row(
@@ -84,7 +74,10 @@ class _MainShellState extends State<MainShell> {
                 ), // missions
                 _navItem(icon: Icons.calendar_month, itemIndex: 2), // calendar
                 _navItem(icon: Icons.insights, itemIndex: 3), // insights
-                _navItem(icon: Icons.archive, itemIndex: 4), // archive
+                _navItem(
+                  icon: CupertinoIcons.archivebox_fill,
+                  itemIndex: 4,
+                ), // archive
               ],
             ),
           ),

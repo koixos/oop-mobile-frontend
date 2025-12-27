@@ -1,30 +1,25 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sptm/models/task_item.dart';
-import 'package:sptm/core/constants.dart';
+import 'package:sptm/services/api_service.dart';
 
 class ArchiveService {
-  final http.Client _client;
-
-  ArchiveService({http.Client? client}) : _client = client ?? http.Client();
+  final ApiService _apiService = ApiService();
 
   /// Kullanıcının archived task'lerini getirir
   Future<List<TaskItem>> getArchivedTasks() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    final userId = prefs.getInt('user_id');
+    final userId = prefs.getInt('userId');
 
     if (token == null || userId == null) {
       throw const ArchiveException("User not authenticated.");
     }
 
-    final uri =
-    Uri.parse("${AppStrings.apiBaseURL}/tasks/user/$userId");
-
-    final response = await _client.get(
-      uri,
+    final response = await _apiService.get(
+      "/tasks/user/$userId",
+      requiresAuth: true,
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
@@ -65,12 +60,9 @@ class ArchiveService {
       throw const ArchiveException("User not authenticated.");
     }
 
-    final uri = Uri.parse(
-      "${AppStrings.apiBaseURL}/tasks/$taskId/archive",
-    );
-
-    final response = await _client.post(
-      uri,
+    final response = await _apiService.post(
+      "/tasks/$taskId/archive",
+      requiresAuth: true,
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",

@@ -1,46 +1,100 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:sptm/models/mission.dart';
 import 'package:sptm/services/api_service.dart';
 
+class MissionServiceException implements Exception {
+  final String message;
+
+  const MissionServiceException(this.message);
+}
+
 class MissionService {
-  final ApiService _api = ApiService();
+  final ApiService _apiService;
 
-  Future<List<Mission>> getMissions(int userId) async {
-    final response = await _api.get('/missions/user/$userId');
-    if (response == null) return [];
+  MissionService({ApiService? apiService})
+    : _apiService = apiService ?? ApiService();
 
-    if (response is List) {
-      return response.map((json) => Mission.fromJson(json)).toList();
-    } else {
-      throw ApiException("Unexpected response format", 500);
+  Future<List<Mission>> fetchUserMissions(int userId) async {
+    final response = await _apiService.get('/missions/user/$userId');
+    if (response.statusCode == 200) {
+      final payload = jsonDecode(response.body) as List<dynamic>;
+      return payload
+          .map((item) => Mission.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
+
+    throw MissionServiceException(_errorMessage(response));
   }
 
-  Future<Mission> createMission(String content, int userId) async {
-    final body = {
-      'content': content,
-      'user': {'id': userId},
-      'subMissions': [] // Start empty
-    };
+  Future<Mission> createMission(int userId, String content) async {
+    final response = await _apiService.post(
+      '/missions?userId=$userId',
+      body: content,
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      return Mission.fromJson(payload);
+    }
 
-    final response = await _api.post('/missions', body: body);
-    return Mission.fromJson(response);
+    throw MissionServiceException(_errorMessage(response));
+  }
+
+  Future<Mission> updateMission(int missionId, String content) async {
+    final response = await _apiService.put(
+      '/missions/$missionId',
+      body: content,
+    );
+    if (response.statusCode == 200) {
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      return Mission.fromJson(payload);
+    }
+
+    throw MissionServiceException(_errorMessage(response));
   }
 
   Future<void> deleteMission(int missionId) async {
-    await _api.delete('/missions/$missionId');
+    final response = await _apiService.delete('/missions/$missionId');
+    if (response.statusCode == 204) {
+      return;
+    }
+
+    throw MissionServiceException(_errorMessage(response));
   }
 
-  Future<void> addSubMission(int missionId, String title, String description) async {
-    // Assuming endpoint: POST /api/missions/{missionId}/submissions
-    final body = {
-      'title': title,
-      'description': description,
-    };
-    await _api.post('/missions/$missionId/submissions', body: body);
+  Future<SubMission> addSubMission(
+    int missionId,
+    String title,
+    String description,
+  ) async {
+    final response = await _apiService.post(
+      '/missions/$missionId/submissions',
+      body: {'title': title, 'description': description},
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      return SubMission.fromJson(payload);
+    }
+
+    throw MissionServiceException(_errorMessage(response));
   }
 
   Future<void> deleteSubMission(int subMissionId) async {
-      // Assuming endpoint: DELETE /api/missions/submissions/{subMissionId}
-      await _api.delete('/missions/submissions/$subMissionId');
+    final response = await _apiService.delete(
+      '/missions/submissions/$subMissionId',
+    );
+    if (response.statusCode == 204) {
+      return;
+    }
+
+    throw MissionServiceException(_errorMessage(response));
+  }
+
+  String _errorMessage(http.Response response) {
+    if (response.body.isEmpty) {
+      return 'Request failed. (${response.statusCode})';
+    }
+    return response.body;
   }
 }

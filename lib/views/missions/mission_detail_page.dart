@@ -5,35 +5,231 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/core/constants.dart';
 import 'package:sptm/models/mission.dart';
 import 'package:sptm/models/task_item.dart';
+import 'package:sptm/services/mission_service.dart';
 import 'package:sptm/views/dashboard/widgets/task_card.dart';
 import 'package:sptm/views/tasks/task_details_page.dart';
 
 // TODO Implement mission detail funcstionalities:
 //  must lead to task page of that submission
 
-class MissionDetailPage extends StatelessWidget {
+class MissionDetailPage extends StatefulWidget {
   final Mission mission;
 
-  const MissionDetailPage({
-    super.key,
-    required this.mission,
-  });
+  const MissionDetailPage({super.key, required this.mission});
+
+  @override
+  State<MissionDetailPage> createState() => _MissionDetailPageState();
+}
+
+class _MissionDetailPageState extends State<MissionDetailPage> {
+  final MissionService _missionService = MissionService();
+  final List<SubMission> _subMissions = [];
+  bool _isSaving = false;
+  bool _isUpdatingTitle = false;
+  String _missionTitle = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _subMissions
+      ..clear()
+      ..addAll(widget.mission.subMissions);
+    _missionTitle = widget.mission.content;
+  }
+
+  Future<void> _showEditMissionDialog() async {
+    if (_isUpdatingTitle) return;
+    final controller = TextEditingController(text: _missionTitle);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(AppColors.surface),
+          title: const Text(
+            'Edit Mission',
+            style: TextStyle(color: Color(AppColors.textMain)),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            style: const TextStyle(color: Color(AppColors.textMain)),
+            decoration: const InputDecoration(
+              hintText: 'Mission title',
+              hintStyle: TextStyle(color: Color(AppColors.textMuted)),
+            ),
+            onSubmitted: (_) => Navigator.of(context).pop(controller.text),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    final title = result?.trim();
+    if (title == null || title.isEmpty || title == _missionTitle) {
+      return;
+    }
+
+    setState(() => _isUpdatingTitle = true);
+    try {
+      final updated = await _missionService.updateMission(
+        widget.mission.id,
+        title,
+      );
+      if (!mounted) return;
+      setState(() {
+        _missionTitle = updated.content;
+        _isUpdatingTitle = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isUpdatingTitle = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update mission: $e')));
+    }
+  }
+
+  Future<void> _showAddSubMissionDialog() async {
+    if (_isSaving) return;
+    final titleController = TextEditingController();
+    final descriptionController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(AppColors.surface),
+          title: const Text(
+            'Add Sub-mission',
+            style: TextStyle(color: Color(AppColors.textMain)),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                autofocus: true,
+                textInputAction: TextInputAction.next,
+                style: const TextStyle(color: Color(AppColors.textMain)),
+                decoration: const InputDecoration(
+                  hintText: 'Title',
+                  hintStyle: TextStyle(color: Color(AppColors.textMuted)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descriptionController,
+                textInputAction: TextInputAction.done,
+                style: const TextStyle(color: Color(AppColors.textMain)),
+                decoration: const InputDecoration(
+                  hintText: 'Description (optional)',
+                  hintStyle: TextStyle(color: Color(AppColors.textMuted)),
+                ),
+                minLines: 2,
+                maxLines: 4,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+
+    final shouldSave = result ?? false;
+    if (!shouldSave) return;
+
+    final title = titleController.text.trim();
+    if (title.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a title.')));
+      return;
+    }
+
+    final description = descriptionController.text.trim();
+
+    setState(() => _isSaving = true);
+    try {
+      final created = await _missionService.addSubMission(
+        widget.mission.id,
+        title,
+        description,
+      );
+      if (!mounted) return;
+      setState(() {
+        _subMissions.add(created);
+        _isSaving = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to add sub-mission: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     // Assuming backend SubMission has title and description.
     // We map them to display.
-    final submissions = mission.subMissions;
+    final submissions = _subMissions;
 
     return Scaffold(
       backgroundColor: const Color(AppColors.background),
       appBar: AppBar(
-        backgroundColor: const Color(AppColors.surface),
+        backgroundColor: const Color(AppColors.background),
         iconTheme: const IconThemeData(color: Color(AppColors.textMain)),
         title: Text(
-          mission.content,
-          style: const TextStyle(color: Color(AppColors.textMain)),
+          _missionTitle,
+          style: const TextStyle(
+            color: Color(AppColors.textMain),
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Color(AppColors.textMain)),
+            onPressed: _isUpdatingTitle ? null : _showEditMissionDialog,
+            tooltip: "Edit mission",
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _isSaving ? null : _showAddSubMissionDialog,
+        backgroundColor: const Color(AppColors.primary),
+        child: _isSaving
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(Icons.add, color: Colors.white),
       ),
       body: submissions.isEmpty
           ? const Center(
@@ -55,13 +251,13 @@ class MissionDetailPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     onTap: () {
-                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => SubMissionDetailPage(
-                              subMissionTitle: submission.title,
-                            ),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => SubMissionDetailPage(
+                            subMissionTitle: submission.title,
                           ),
-                        );
+                        ),
+                      );
                     },
                     title: Text(
                       submission.title,
@@ -70,10 +266,14 @@ class MissionDetailPage extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    subtitle: submission.description != null ? Text(
-                      submission.description!,
-                      style: const TextStyle(color: Color(AppColors.textMuted)),
-                    ) : null,
+                    subtitle: submission.description.trim().isNotEmpty
+                        ? Text(
+                            submission.description,
+                            style: const TextStyle(
+                              color: Color(AppColors.textMuted),
+                            ),
+                          )
+                        : null,
                     trailing: const Icon(
                       Icons.keyboard_arrow_right,
                       color: Color(AppColors.textMuted),
@@ -131,6 +331,21 @@ class _SubMissionDetailPageState extends State<SubMissionDetailPage> {
     await prefs.setStringList(_tasksKey, payloads);
   }
 
+  Future<void> _toggleTaskDone(TaskItem task) async {
+    final index = _tasks.indexWhere((t) => t.id == task.id);
+    if (index == -1) return;
+
+    final updated = task.copyWith(
+      done: !task.done,
+      completedAt: !task.done ? DateTime.now() : null,
+    );
+
+    setState(() {
+      _tasks[index] = updated;
+    });
+    await _saveTasks();
+  }
+
   List<TaskItem> get _linkedTasks {
     return _tasks
         .where((task) => task.mission == widget.subMissionTitle)
@@ -162,11 +377,15 @@ class _SubMissionDetailPageState extends State<SubMissionDetailPage> {
     return Scaffold(
       backgroundColor: const Color(AppColors.background),
       appBar: AppBar(
-        backgroundColor: const Color(AppColors.surface),
+        backgroundColor: const Color(AppColors.background),
         iconTheme: const IconThemeData(color: Color(AppColors.textMain)),
         title: Text(
           widget.subMissionTitle,
-          style: const TextStyle(color: Color(AppColors.textMain)),
+          style: const TextStyle(
+            color: Color(AppColors.textMain),
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: SafeArea(
@@ -242,7 +461,6 @@ class _SubMissionDetailPageState extends State<SubMissionDetailPage> {
                       )
                     else
                       ...linkedTasks.map((TaskItem task) {
-                        final String missionTitle = task.mission ?? "No Mission";
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: InkWell(
@@ -251,13 +469,20 @@ class _SubMissionDetailPageState extends State<SubMissionDetailPage> {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => TaskDetailsPage(
-                                    title: task.title,
-                                    submission: missionTitle,
-                                    dueDate: task.dueDate,
-                                    context: task.context,
+                                    task: task,
                                     onDelete: () {
                                       setState(() {
                                         _tasks.remove(task);
+                                      });
+                                      _saveTasks();
+                                    },
+                                    onUpdate: (updated) {
+                                      final index = _tasks.indexWhere(
+                                        (t) => t.id == updated.id,
+                                      );
+                                      if (index == -1) return;
+                                      setState(() {
+                                        _tasks[index] = updated;
                                       });
                                       _saveTasks();
                                     },
@@ -270,6 +495,7 @@ class _SubMissionDetailPageState extends State<SubMissionDetailPage> {
                               subtitle:
                                   "${task.context ?? "No context"} · ${task.dueDate != null ? _formatDate(task.dueDate!) : "No date"}",
                               done: task.done,
+                              onToggleDone: () => _toggleTaskDone(task),
                             ),
                           ),
                         );

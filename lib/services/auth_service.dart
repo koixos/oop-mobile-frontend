@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sptm/core/constants.dart';
+import 'package:sptm/services/api_service.dart';
+import 'package:sptm/services/auth_storage.dart';
 
 class AuthException implements Exception {
   final String message;
@@ -11,16 +11,18 @@ class AuthException implements Exception {
 }
 
 class AuthService {
-  final http.Client _client;
+  final ApiService _apiService;
+  final AuthStorage _authStorage;
 
-  AuthService({http.Client? client}) : _client = client ?? http.Client();
+  AuthService({ApiService? apiService, AuthStorage? authStorage})
+    : _apiService = apiService ?? ApiService(),
+      _authStorage = authStorage ?? AuthStorage();
 
   Future<void> register(String name, String email, String passwd) async {
-    final uri = Uri.parse("${AppStrings.apiBaseURL}/auth/register");
-    final response = await _client.post(
-      uri,
-      headers: const {"Content-Type": "application/json"},
-      body: jsonEncode({"username": name, "email": email, "password": passwd}),
+    final response = await _apiService.post(
+      '/auth/register',
+      requiresAuth: false,
+      body: {"username": name, "email": email, "password": passwd},
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -37,40 +39,39 @@ class AuthService {
     throw AuthException(message);
   }
 
-  Future<void> login(String emailOrPhone, String passwd) async {
-    final uri = Uri.parse('${AppStrings.apiBaseURL}/auth/login');
-    final loginValue = emailOrPhone.trim();
-    final payload = <String, String>{"password": passwd};
+  Future<void> login(String email, String passwd) async {
+    final loginValue = email.trim();
+    final payload = <String, String>{"email": loginValue, "password": passwd};
 
-    if (loginValue.contains("@")) {
-      payload["email"] = loginValue;
-    } else if (RegExp(r"^\+?\d+$").hasMatch(loginValue)) {
-    } else {
-      payload["username"] = loginValue;
-    }
-
-    final response = await _client.post(
-      uri,
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode(payload),
+    final response = await _apiService.post(
+      '/auth/login',
+      requiresAuth: false,
+      body: payload,
     );
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final token = body['token'] as String?;
+      final token =
+          body['token'] as String? ??
+          body['accessToken'] as String? ??
+          body['access_token'] as String? ??
+          body['jwt'] as String?;
+      final id = body['id'] ?? body['userId'];
       if (token == null) {
         throw const AuthException('Invalid response from server.');
       }
 
+      await _authStorage.saveToken(token);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-      await prefs.setBool('loggedIn', true);
-      if (body['id'] is int) await prefs.setInt('user_id', body['id'] as int);
-      if (body['username'] is String) {
-        await prefs.setString('username', body['username'] as String);
+      if (id != null) {
+        await prefs.setInt("userId", (id as num).toInt());
       }
-      if (body['email'] is String) {
-        await prefs.setString('email', body['email'] as String);
+      await prefs.setString("email", email);
+      final username = body['username'] as String?;
+      if (username != null && username.trim().isNotEmpty) {
+        final trimmed = username.trim();
+        await prefs.setString("username", trimmed);
+        await prefs.setString("name", trimmed);
       }
       return;
     }
@@ -86,8 +87,9 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    await _authStorage.clearToken();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove("userId");
   }
 
   Future<bool> requestPasswdReset(String email) async {

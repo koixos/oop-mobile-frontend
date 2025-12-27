@@ -25,14 +25,14 @@ class _MissionsListPageState extends State<MissionsListPage> {
 
   Future<void> _loadMissions() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt("user_id");
+    final userId = prefs.getInt("userId");
     if (userId == null) {
-      if(mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
       return;
     }
 
     try {
-      final missions = await _missionService.getMissions(userId);
+      final missions = await _missionService.fetchUserMissions(userId);
       if (!mounted) return;
       setState(() {
         _missions.clear();
@@ -42,9 +42,9 @@ class _MissionsListPageState extends State<MissionsListPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load missions: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load missions: $e")));
     }
   }
 
@@ -91,26 +91,26 @@ class _MissionsListPageState extends State<MissionsListPage> {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt("user_id");
+    final userId = prefs.getInt("userId");
 
     if (userId == null) {
-        if(!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text("User not found."))
-        );
-        return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("User not found.")));
+      return;
     }
 
     try {
-      final newMission = await _missionService.createMission(title, userId);
+      final newMission = await _missionService.createMission(userId, title);
       setState(() {
         _missions.add(newMission);
       });
     } catch (e) {
-      if(!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to create mission: $e")),
-      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to create mission: $e")));
     }
   }
 
@@ -180,15 +180,13 @@ class _MissionsListPageState extends State<MissionsListPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(AppColors.textMain),
-                    fontSize: 25,
+                    fontSize: 28,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.add, color: Color(AppColors.textMain)),
-                  onPressed: () {
-                    _showAddMissionDialog();
-                  },
+                  onPressed: _showAddMissionDialog,
                 ),
               ],
             ),
@@ -203,22 +201,22 @@ class _MissionsListPageState extends State<MissionsListPage> {
                     const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final t = _missions[index];
-                  // Assign random colors or cycle through colors if needed, 
+                  // Assign random colors or cycle through colors if needed,
                   // or just use a standard color for now.
-                  const color = Color(AppColors.secondaryIndigoLight); 
+                  const color = Color(AppColors.secondaryIndigoLight);
 
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MissionDetailPage(
-                               mission: t,
-                            ),
-                          ),
-                        ).then((_) => _loadMissions()); // Reload on return
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => MissionDetailPage(mission: t),
+                              ),
+                            )
+                            .then((_) => _loadMissions()); // Reload on return
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -243,8 +241,10 @@ class _MissionsListPageState extends State<MissionsListPage> {
                             ),
                           ),
                           subtitle: Text(
-                             "${t.subMissions.length} sub-missions",
-                             style: const TextStyle(color: Color(AppColors.textMuted)),
+                            "${t.subMissions.length} sub-missions",
+                            style: const TextStyle(
+                              color: Color(AppColors.textMuted),
+                            ),
                           ),
                           trailing: const Icon(
                             Icons.chevron_right,

@@ -1,92 +1,112 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/core/constants.dart';
+import 'package:sptm/services/auth_storage.dart';
 
 class ApiException implements Exception {
   final String message;
-  final int statusCode;
-
-  ApiException(this.message, this.statusCode);
-
-  @override
-  String toString() => 'ApiException: $message (Status: $statusCode)';
+  final int? statusCode;
+  const ApiException(this.message, {this.statusCode});
 }
 
 class ApiService {
-  final http.Client _client = http.Client();
+  final http.Client _client;
+  final AuthStorage _authStorage;
 
-  Future<Map<String, String>> _getHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    
-    return {
+  ApiService({http.Client? client, AuthStorage? authStorage})
+    : _client = client ?? http.Client(),
+      _authStorage = authStorage ?? AuthStorage();
+
+  Future<http.Response> get(
+    String path, {
+    bool requiresAuth = true,
+    Map<String, String>? headers,
+  }) {
+    return _request('GET', path, requiresAuth: requiresAuth, headers: headers);
+  }
+
+  Future<http.Response> post(
+    String path, {
+    Object? body,
+    bool requiresAuth = true,
+    Map<String, String>? headers,
+  }) {
+    return _request(
+      'POST',
+      path,
+      body: body,
+      requiresAuth: requiresAuth,
+      headers: headers,
+    );
+  }
+
+  Future<http.Response> put(
+    String path, {
+    Object? body,
+    bool requiresAuth = true,
+    Map<String, String>? headers,
+  }) {
+    return _request(
+      'PUT',
+      path,
+      body: body,
+      requiresAuth: requiresAuth,
+      headers: headers,
+    );
+  }
+
+  Future<http.Response> delete(
+    String path, {
+    Object? body,
+    bool requiresAuth = true,
+    Map<String, String>? headers,
+  }) {
+    return _request(
+      'DELETE',
+      path,
+      body: body,
+      requiresAuth: requiresAuth,
+      headers: headers,
+    );
+  }
+
+  Future<http.Response> _request(
+    String method,
+    String path, {
+    Object? body,
+    bool requiresAuth = true,
+    Map<String, String>? headers,
+  }) async {
+    final uri = Uri.parse('${AppStrings.apiBaseURL}$path');
+
+    final requestHeaders = <String, String>{
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
+      if (headers != null) ...headers,
     };
-  }
 
-  Uri _getUri(String endpoint) {
-    return Uri.parse('${AppStrings.apiBaseURL}$endpoint');
-  }
-
-  Future<dynamic> get(String endpoint) async {
-    final response = await _client.get(
-      _getUri(endpoint),
-      headers: await _getHeaders(),
-    );
-    return _handleResponse(response);
-  }
-
-  Future<dynamic> post(String endpoint, {dynamic body}) async {
-    final response = await _client.post(
-      _getUri(endpoint),
-      headers: await _getHeaders(),
-      body: body != null ? jsonEncode(body) : null,
-    );
-    return _handleResponse(response);
-  }
-
-  Future<dynamic> put(String endpoint, {dynamic body}) async {
-    final response = await _client.put(
-      _getUri(endpoint),
-      headers: await _getHeaders(),
-      body: body != null ? jsonEncode(body) : null,
-    );
-    return _handleResponse(response);
-  }
-
-  Future<dynamic> delete(String endpoint) async {
-    final response = await _client.delete(
-      _getUri(endpoint),
-      headers: await _getHeaders(),
-    );
-    return _handleResponse(response);
-  }
-
-  dynamic _handleResponse(http.Response response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return null;
-      try {
-        return jsonDecode(response.body);
-      } catch (e) {
-        return response.body; // Return raw string if not JSON
+    if (requiresAuth) {
+      final token = await _authStorage.readToken();
+      if (token != null) {
+        requestHeaders['Authorization'] = token.startsWith('Bearer ')
+            ? token
+            : 'Bearer $token';
       }
-    } else if (response.statusCode == 401) {
-       // TODO: Handle token expiration/logout
-      throw ApiException("Unauthorized", 401);
-    } else {
-      String message = "Unknown Error";
-      try {
-        final body = jsonDecode(response.body);
-        message = body['message'] ?? body['error'] ?? response.body;
-      } catch (_) {
-        message = response.body;
-      }
-      throw ApiException(message, response.statusCode);
     }
+
+    final response = await _client
+        .send(
+          http.Request(method, uri)
+            ..headers.addAll(requestHeaders)
+            ..body = body == null ? '' : jsonEncode(body),
+        )
+        .then(http.Response.fromStream);
+
+    if (response.statusCode == 401) {
+      await _authStorage.clearToken();
+      throw const ApiException('Session expired.', statusCode: 401);
+    }
+
+    return response;
   }
 }

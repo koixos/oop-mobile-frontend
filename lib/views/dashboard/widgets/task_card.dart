@@ -5,12 +5,14 @@ class TaskCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool done;
+  final VoidCallback? onToggleDone;
 
   const TaskCard({
     super.key,
     required this.title,
     required this.subtitle,
-    this.done = false
+    this.done = false,
+    this.onToggleDone,
   });
 
   @override
@@ -24,44 +26,55 @@ class TaskCard extends StatelessWidget {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () {},
+            onTap: onToggleDone,
             child: Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(AppColors.primary), width: 3),
-                color: done ? const Color(AppColors.primary) : Colors.transparent,
+                border: Border.all(
+                  color: const Color(AppColors.primary),
+                  width: 3,
+                ),
+                color: done
+                    ? const Color(AppColors.primary)
+                    : Colors.transparent,
               ),
               child: done
-                  ? const Icon(Icons.check, color: Color(AppColors.textMain), size: 20)
+                  ? const Icon(
+                      Icons.check,
+                      color: Color(AppColors.textMain),
+                      size: 20,
+                    )
                   : null,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      decoration: done ? TextDecoration.lineThrough : TextDecoration.none,
-                      color: done
-                          ? const Color(AppColors.textMuted)
-                          : const Color(AppColors.textMain),
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    decoration: done
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    color: done
+                        ? const Color(AppColors.textMuted)
+                        : const Color(AppColors.textMain),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Color(AppColors.textMuted)),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Color(AppColors.textMuted)),
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );

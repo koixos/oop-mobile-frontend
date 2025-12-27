@@ -1,57 +1,49 @@
-class Mission {
-  final int id;
-  final String content; // Maps to title
-  final List<SubMission> subMissions;
-
-  Mission({
-    required this.id,
-    required this.content,
-    required this.subMissions,
-  });
-
-  factory Mission.fromJson(Map<String, dynamic> json) {
-    var rawSubMissions = json['subMissions'] as List? ?? [];
-    List<SubMission> subs =
-        rawSubMissions.map((e) => SubMission.fromJson(e)).toList();
-
-    return Mission(
-      id: json['id'],
-      content: json['content'] ?? '',
-      subMissions: subs,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'content': content,
-      'subMissions': subMissions.map((e) => e.toJson()).toList(),
-    };
-  }
-}
-
 class SubMission {
   final int id;
   final String title;
-  final String? description;
+  final String description;
 
-  SubMission({
+  const SubMission({
     required this.id,
     required this.title,
-    this.description,
+    required this.description,
   });
 
   factory SubMission.fromJson(Map<String, dynamic> json) {
     return SubMission(
-      id: json['id'],
-      title: json['title'] ?? '',
-      description: json['description'],
+      id: (json['id'] as num).toInt(),
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'description': description,
-    };
+class Mission {
+  final int id;
+  final String content;
+  final int version;
+  final int userId;
+  final List<SubMission> subMissions;
+
+  const Mission({
+    required this.id,
+    required this.content,
+    required this.version,
+    required this.userId,
+    required this.subMissions,
+  });
+
+  factory Mission.fromJson(Map<String, dynamic> json) {
+    final subMissionsJson =
+        (json['subMissions'] as List<dynamic>? ?? <dynamic>[]);
+    return Mission(
+      id: (json['id'] as num).toInt(),
+      content: json['content'] as String? ?? '',
+      version: (json['version'] as num?)?.toInt() ?? 0,
+      userId: (json['userId'] as num?)?.toInt() ?? 0,
+      subMissions: subMissionsJson
+          .map((item) => SubMission.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
   }
 }

@@ -18,29 +18,29 @@ class _InsightsPageState extends State<InsightsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0E1117),
-      bottomNavigationBar: _buildBottomNav(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        child: RefreshIndicator(
+          onRefresh: _loadStats,
+          color: const Color(0xFF6C5CE7),
+          backgroundColor: const Color(0xFF161B22),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              const SizedBox(height: 24),
-              _buildPeriodSelector(),
               const SizedBox(height: 24),
               _buildStatsCards(),
               const SizedBox(height: 24),
               _buildActivityChart(),
               const SizedBox(height: 32),
               _buildMissionProgress(),
-              const SizedBox(height: 32),
-              _buildMonthlyGoals(),
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 
   // HEADER
@@ -63,7 +63,7 @@ class _InsightsPageState extends State<InsightsPage> {
                   color: Colors.white),
             ),
             Text(
-              "Track your progress",
+              "Weekly Analysis",
               style: TextStyle(color: Colors.white54),
             )
           ],
@@ -73,43 +73,6 @@ class _InsightsPageState extends State<InsightsPage> {
         const SizedBox(width: 16),
         Icon(Icons.settings_outlined, color: Colors.white),
       ],
-    );
-  }
-
-  // PERIOD SELECTOR
-  Widget _buildPeriodSelector() {
-    final labels = ["Weekly", "Monthly", "Yearly"];
-
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: List.generate(labels.length, (i) {
-          final selected = i == selectedPeriod;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => selectedPeriod = i),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: selected ? const Color(0xFF6C5CE7) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  labels[i],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: selected ? Colors.white : Colors.white54,
-                      fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          );
-        }),
-      ),
     );
   }
 
@@ -145,10 +108,10 @@ class _InsightsPageState extends State<InsightsPage> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     final completed = _stats?.completedTasks ?? 0;
     final rate = _stats?.completionRate ?? 0;
-    
+
     return Row(
       children: [
         _statCard(
@@ -161,7 +124,7 @@ class _InsightsPageState extends State<InsightsPage> {
         _statCard(
             title: "Completion Rate",
             value: "${rate.toStringAsFixed(1)}%",
-            delta: "", 
+            delta: "",
             icon: Icons.psychology,
             color: Colors.purple),
       ],
@@ -211,8 +174,33 @@ class _InsightsPageState extends State<InsightsPage> {
     );
   }
 
-  // ACTIVITY CHART
+
   Widget _buildActivityChart() {
+    if (_isLoading) return const SizedBox.shrink();
+
+    /// 1️⃣ DATA GARANTİSİ
+    final rawData = _stats?.activityData ?? [];
+    final List<double> data = List.generate(
+      7,
+          (i) => i < rawData.length ? rawData[i].toDouble() : 0,
+    );
+
+    final spots = List.generate(
+      7,
+          (i) => FlSpot(i.toDouble(), data[i]),
+    );
+
+    /// 2️⃣ SAFE maxY
+    final maxY = data.reduce((a, b) => a > b ? a : b);
+    final safeMaxY = maxY == 0 ? 5 : maxY + 1;
+
+    final now = DateTime.now();
+    final weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    final days = List.generate(7, (index) {
+      final date = now.subtract(Duration(days: 6 - index));
+      return weekDays[date.weekday - 1];
+    });
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -222,59 +210,100 @@ class _InsightsPageState extends State<InsightsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
-              Text("Activity",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-              Spacer(),
-              Text("View Report",
-                  style: TextStyle(color: Color(0xFF6C5CE7))),
-            ],
+          const Text(
+            "Activity",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           SizedBox(
-            height: 180,
+            height: 220,
             child: LineChart(
               LineChartData(
-                gridData: FlGridData(show: false),
+                minX: 0,
+                maxX: 6,
+                minY: 0,
+                maxY: safeMaxY.toDouble(),
+
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 1,
+                  getDrawingHorizontalLine: (_) =>
+                      FlLine(color: Colors.white10, strokeWidth: 1),
+                ),
+
                 titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-                        return Text(days[value.toInt()],
-                            style: const TextStyle(color: Colors.white54));
+                      interval: 1,
+                      getTitlesWidget: (value, _) {
+                        final i = value.toInt();
+                        if (i < 0 || i > 6) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            days[i],
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        );
                       },
                     ),
                   ),
                 ),
+
                 borderData: FlBorderData(show: false),
+
                 lineBarsData: [
                   LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 3),
-                      FlSpot(1, 5),
-                      FlSpot(2, 2),
-                      FlSpot(3, 7),
-                      FlSpot(4, 5),
-                      FlSpot(5, 4),
-                      FlSpot(6, 6),
-                    ],
+                    spots: spots,
                     isCurved: true,
+                    curveSmoothness: 0.35,
                     color: const Color(0xFF6C5CE7),
-                    barWidth: 3,
-                    dotData: FlDotData(show: true),
+                    barWidth: 4,
+
+                    /// 3️⃣ BULLET POINTLER
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (_, __, ___, ____) {
+                        return FlDotCirclePainter(
+                          radius: 5,
+                          color: const Color(0xFF6C5CE7), // bullet
+                          strokeWidth: 2,
+                          strokeColor: Colors.white, // outline
+                        );
+                      },
+                    ),
+
+                    /// 4️⃣ ALT GRADIENT
                     belowBarData: BarAreaData(
-                        show: true,
-                        color: const Color(0xFF6C5CE7).withOpacity(0.2)),
-                  )
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF6C5CE7).withOpacity(0.3),
+                          const Color(0xFF6C5CE7).withOpacity(0.0),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -286,6 +315,12 @@ class _InsightsPageState extends State<InsightsPage> {
 
   // MISSION PROGRESS
   Widget _buildMissionProgress() {
+    final missions = _stats?.missionProgress ?? [];
+    
+    if (missions.isEmpty) {
+         return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,11 +330,23 @@ class _InsightsPageState extends State<InsightsPage> {
                 fontSize: 18,
                 fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        _progressItem("Graduate University", 0.75, Colors.red),
-        _progressItem("Find a Job", 0.30, Colors.orange),
-        _progressItem("Improve Coding Skills", 0.60, Colors.blue),
+        ...missions.map((m) {
+             final color = _parseColor(m.color);
+             return _progressItem(m.title, m.progress, color);
+        }).toList(),
       ],
     );
+  }
+  
+  Color _parseColor(String colorStr) {
+      try {
+          if (colorStr.startsWith("#")) {
+              return Color(int.parse("0xFF" + colorStr.substring(1)));
+          }
+      } catch (e) {
+          // ignore
+      }
+      return Colors.blue; 
   }
 
   Widget _progressItem(String title, double value, Color color) {
@@ -326,63 +373,6 @@ class _InsightsPageState extends State<InsightsPage> {
           ),
         ],
       ),
-    );
-  }
-
-  // MONTHLY GOALS
-  Widget _buildMonthlyGoals() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6C5CE7), Color(0xFF8E44AD)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text("Monthly Goals",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              Text("12 / 15 Goals",
-                  style: TextStyle(color: Colors.white70, fontSize: 16)),
-            ],
-          ),
-          const Spacer(),
-          const SizedBox(
-            width: 60,
-            height: 60,
-            child: CircularProgressIndicator(
-              value: 0.8,
-              strokeWidth: 6,
-              backgroundColor: Colors.white24,
-              valueColor: AlwaysStoppedAnimation(Colors.white),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  // BOTTOM NAV
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      backgroundColor: const Color(0xFF0E1117),
-      selectedItemColor: const Color(0xFF6C5CE7),
-      unselectedItemColor: Colors.white38,
-      currentIndex: 3,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: ""),
-        BottomNavigationBarItem(icon: Icon(Icons.show_chart), label: ""),
-        BottomNavigationBarItem(icon: Icon(Icons.insights), label: ""),
-      ],
     );
   }
 }

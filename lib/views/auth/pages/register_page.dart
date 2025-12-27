@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sptm/core/constants.dart';
 // import 'package:sptm/core/validators.dart';
 import 'package:sptm/services/auth_service.dart';
@@ -32,13 +33,16 @@ class _RegisterPageState extends State<RegisterPage> {
         emailCtrl.text.trim(),
         passwdCtrl.text.trim(),
       );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("username", nameCtrl.text.trim());
+      await prefs.setString("name", nameCtrl.text.trim());
+      await prefs.setString("email", emailCtrl.text.trim());
       Fluttertoast.showToast(msg: "Registration successful!");
       Navigator.pop(context);
     } on AuthException catch (e) {
       Fluttertoast.showToast(msg: e.message);
-    } catch (ex) {
+    } catch (_) {
       Fluttertoast.showToast(msg: "Registration failed. Please try again.");
-      print(ex);
     } finally {
       if (mounted) setState(() => loading = false);
     }

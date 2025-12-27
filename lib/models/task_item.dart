@@ -34,7 +34,9 @@ class TaskItem {
     // Check if starts with NOT_URGENT -> urgent=false
     // if starts with URGENT -> urgent=true
     final isUrgent = priority != null && !priority.startsWith("NOT_URGENT");
-    final isImportant = priority?.contains("IMPORTANT") == true && !priority!.endsWith("NOT_IMPORTANT");
+    final isImportant =
+        priority?.contains("IMPORTANT") == true &&
+        !priority!.endsWith("NOT_IMPORTANT");
 
     // Status logic
     final status = json['status'] as String?;
@@ -50,8 +52,10 @@ class TaskItem {
       context: json['context'],
       isInbox: json['isInbox'] ?? true,
       isArchived: json['isArchived'] ?? false,
-      completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt']) : null,
-      mission: json['missionName'], 
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
+          : null,
+      mission: json['missionName'],
       done: isDone,
     );
   }
